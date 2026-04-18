@@ -24,14 +24,7 @@ struct RouterView: View {
         NavigationStack {
             HStack(spacing: 0) {
                 if (props.isiPad && props.isLandscape) {
-                    ViewThatFits {
-                        SidebarView()
-                        ScrollView(.vertical, showsIndicators: false) {
-                            SidebarView()
-                                .scrollContentBackground(.hidden)
-                        }
-                        .scrollContentBackground(.hidden)
-                    }
+                    SidebarView()
                 }
 
                 VStack(alignment: .leading) {
@@ -50,29 +43,22 @@ struct RouterView: View {
                 scrapper.backgroundColor
                     .ignoresSafeArea()
             }
-            .offset(x: showSideBar ? 100 : 0)
+            .offset(x: showSideBar ? SidebarView.sidebarWidth : 0)
             .overlay(alignment: .leading) {
-                ViewThatFits {
-                    SidebarView()
-                    ScrollView(.vertical, showsIndicators: false) {
-                        SidebarView()
-                            .scrollContentBackground(.hidden)
-                    }
-                    .scrollContentBackground(.hidden)
-                }
-                .offset(x: showSideBar ? 0 : -100)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background {
-                    Color.black
-                        .opacity(showSideBar ? 0.5 : 0)
-                        .offset(x: showSideBar ? 100 : 0)
-                        .ignoresSafeArea()
-                        .onTapGesture {
-                            withAnimation(.easeInOut) {
-                                showSideBar.toggle()
+                SidebarView()
+                    .offset(x: showSideBar ? 0 : -SidebarView.sidebarWidth)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background {
+                        Color.black
+                            .opacity(showSideBar ? 0.5 : 0)
+                            .offset(x: showSideBar ? SidebarView.sidebarWidth : 0)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                withAnimation(.easeInOut) {
+                                    showSideBar.toggle()
+                                }
                             }
-                        }
-                }
+                    }
             }
             .environmentObject(props)
             .environmentObject(scrapper)

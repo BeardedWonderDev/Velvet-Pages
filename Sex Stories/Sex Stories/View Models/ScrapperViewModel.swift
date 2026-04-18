@@ -195,13 +195,22 @@ final class ScrapperViewModel: ObservableObject {
     }
 
     func trimmedTitle(_ title: String) -> String {
-        let words = title.split(separator: " ").map(String.init)
-        guard words.count > 1 else { return title }
-        if !words[1].starts(with: "-") && words[1] != "Sex" {
-            return words[0] + " " + words[1]
-        } else {
-            return words[0]
-        }
+        var cleaned = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Remove "Sex Stories" along with any surrounding dashes and extra spaces
+        cleaned = cleaned.replacingOccurrences(
+            of: #"\s*[-–—]?\s*Sex\s*Stories\s*"#,
+            with: " ",
+            options: .regularExpression
+        )
+        
+        // Clean up any remaining artifacts (multiple spaces, trailing/leading dashes)
+        cleaned = cleaned
+            .replacingOccurrences(of: " {2,}", with: " ", options: .regularExpression)  // collapse multiple spaces
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-–— "))                 // remove leftover dashes/spaces
+        
+        return cleaned.isEmpty ? title : cleaned
     }
 
     func startMonitoring() {

@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct SidebarView: View {
+    static let sidebarWidth: CGFloat = 250
+
     @Namespace var animation
     @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = 0
     @SceneStorage("showSettings") var showSettings: Bool = false
@@ -18,51 +20,58 @@ struct SidebarView: View {
     }
 
     var body: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "heart.text.square.fill")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 55, height: 55)
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
-                .padding(.bottom, 20)
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    Image(systemName: "heart.text.square.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(scrapper.accentColor)
+                        .frame(width: 20)
 
-            ForEach(Array(sectionItems.enumerated()), id: \.offset) { index, section in
+                    Text("Stories")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(scrapper.primaryColor)
+
+                    Spacer(minLength: 0)
+                }
+                .padding(.bottom, 10)
+
+                ForEach(Array(sectionItems.enumerated()), id: \.offset) { index, section in
+                    sidebarItem(
+                        title: scrapper.trimmedTitle(section.title),
+                        systemImage: "book.closed",
+                        isSelected: !showSettings && selectedSectionIndex == index,
+                        action: {
+                            withAnimation(.easeInOut) {
+                                showSettings = false
+                                selectedSectionIndex = index
+                            }
+                        }
+                    )
+                }
+
+                Spacer(minLength: 8)
+
                 sidebarItem(
-                    title: scrapper.trimmedTitle(section.title),
-                    systemImage: "book.closed",
-                    isSelected: !showSettings && selectedSectionIndex == index,
+                    title: "Settings",
+                    systemImage: "gearshape",
+                    isSelected: showSettings,
                     action: {
                         withAnimation(.easeInOut) {
-                            showSettings = false
-                            selectedSectionIndex = index
+                            showSettings = true
                         }
                     }
                 )
             }
-
-            Spacer(minLength: 8)
-
-            sidebarItem(
-                title: "Settings",
-                systemImage: "gearshape",
-                isSelected: showSettings,
-                action: {
-                    withAnimation(.easeInOut) {
-                        showSettings = true
-                    }
-                }
-            )
+            .padding(.horizontal, 14)
+            .padding(.vertical, 16)
+            .frame(maxWidth: .infinity, alignment: .topLeading)
         }
-        .padding(.vertical, 15)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .frame(width: 100)
-        .background {
-            scrapper.backgroundColor.opacity(0.92)
-                .ignoresSafeArea()
-        }
+        .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
-        .background(scrapper.backgroundColor.opacity(0.92))
+        .background(scrapper.backgroundColor.opacity(0.92).ignoresSafeArea())
+        .frame(width: Self.sidebarWidth)
         .onChange(of: scrapper.sections.count) { _, newValue in
             if selectedSectionIndex >= newValue {
                 selectedSectionIndex = max(0, newValue - 1)
@@ -72,31 +81,30 @@ struct SidebarView: View {
 
     @ViewBuilder
     private func sidebarItem(title: String, systemImage: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
-        VStack(spacing: 8) {
+        HStack(spacing: 10) {
             Image(systemName: systemImage)
-                .resizable()
-                .renderingMode(.template)
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 33, height: 33)
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(scrapper.accentColor)
+                .frame(width: 20)
 
             Text(title)
-                .font(.caption)
-                .fontWeight(.semibold)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(isSelected ? scrapper.accentColor : scrapper.secondaryColor)
+                .lineLimit(1)
+
+            Spacer(minLength: 0)
         }
-        .foregroundColor(isSelected ? scrapper.accentColor : scrapper.secondaryColor)
-        .padding(.vertical, 13)
-        .frame(width: 65)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             if isSelected {
-                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(scrapper.primaryColor.opacity(0.18))
                     .matchedGeometryEffect(id: "TAB", in: animation)
             }
         }
+        .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .onTapGesture(perform: action)
     }
 }
