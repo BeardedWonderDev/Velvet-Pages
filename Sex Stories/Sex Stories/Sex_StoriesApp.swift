@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct Sex_StoriesApp: App {
@@ -18,5 +19,6 @@ struct Sex_StoriesApp: App {
                     .environmentObject(scrapper)
             }
         }
+        .modelContainer(for: [CachedStoryRecord.self])
     }
 }

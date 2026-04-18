@@ -22,6 +22,8 @@
 		2B9630D02B999001002E853B /* StoryReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9630D12B999001002E853B /* StoryReaderView.swift */; };
 		2B9630D22B999001002E853B /* StoryReaderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9630D32B999001002E853B /* StoryReaderViewModel.swift */; };
 		BBFF7F712F9357B500FAB220 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F702F9357B500FAB220 /* SettingsView.swift */; };
+		BBFF7F752F936A7D00FAB220 /* StoryCacheModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F742F936A7D00FAB220 /* StoryCacheModels.swift */; };
+		D1A7C6EB2F9B000100000001 /* StoryCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +43,8 @@
 		2B9630D12B999001002E853B /* StoryReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryReaderView.swift; sourceTree = "<group>"; };
 		2B9630D32B999001002E853B /* StoryReaderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryReaderViewModel.swift; sourceTree = "<group>"; };
 		BBFF7F702F9357B500FAB220 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		BBFF7F742F936A7D00FAB220 /* StoryCacheModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheModels.swift; sourceTree = "<group>"; };
+		D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -74,7 +78,9 @@
 		2B9630A12B143F14002E853B /* Sex Stories */ = {
 			isa = PBXGroup;
 			children = (
+				BBFF7F742F936A7D00FAB220 /* StoryCacheModels.swift */,
 				2B9630B62B145000002E853B /* View Models */,
+				D1A7C6E72F9B000100000001 /* Services */,
 				2B9630B72B145008002E853B /* Views */,
 				2B9630A22B143F14002E853B /* Sex_StoriesApp.swift */,
 				2B9630A62B143F15002E853B /* Assets.xcassets */,
@@ -131,6 +137,14 @@
 				2B9630C02B145089002E853B /* HeaderView.swift */,
 			);
 			path = "Router Views";
+			sourceTree = "<group>";
+		};
+		D1A7C6E72F9B000100000001 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -215,12 +229,14 @@
 				2B9630B52B143F6C002E853B /* ScrapperViewModel.swift in Sources */,
 				2B9630BD2B145080002E853B /* SidebarView.swift in Sources */,
 				2B9630BF2B145084002E853B /* RouterView.swift in Sources */,
+				BBFF7F752F936A7D00FAB220 /* StoryCacheModels.swift in Sources */,
 				2B9630A52B143F14002E853B /* ContentView.swift in Sources */,
 				2B9630A32B143F14002E853B /* Sex_StoriesApp.swift in Sources */,
 				2B9630C12B145089002E853B /* HeaderView.swift in Sources */,
 				BBFF7F712F9357B500FAB220 /* SettingsView.swift in Sources */,
 				2B9630D02B999001002E853B /* StoryReaderView.swift in Sources */,
 				2B9630D22B999001002E853B /* StoryReaderViewModel.swift in Sources */,
+				D1A7C6EB2F9B000100000001 /* StoryCacheStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +373,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Sex Stories/Preview Content\"";
+				DEVELOPMENT_TEAM = GNTHX6WSUW;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -397,6 +414,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Sex Stories/Preview Content\"";
+				DEVELOPMENT_TEAM = GNTHX6WSUW;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;

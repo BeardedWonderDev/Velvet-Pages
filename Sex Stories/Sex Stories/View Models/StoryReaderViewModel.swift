@@ -6,6 +6,7 @@
 import Foundation
 import SwiftSoup
 import SwiftUI
+import SwiftData
 
 enum StoryReaderBlock: Hashable {
     case heading(String)
@@ -14,44 +15,71 @@ enum StoryReaderBlock: Hashable {
     case separator
 }
 
+@MainActor
 final class StoryReaderViewModel: ObservableObject {
     
     @Published var story: Story
     @Published var blocks: [StoryReaderBlock] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var restoredScrollAnchor: String?
     
+    private var cacheStore: StoryCacheStore?
     private var didLoad = false
     
     init(story: Story) {
         self.story = story
     }
     
-    @MainActor
+    func configureCacheStore(_ modelContext: ModelContext) {
+        if cacheStore == nil {
+            cacheStore = StoryCacheStore(modelContext: modelContext)
+        }
+    }
+    
     func loadStoryIfNeeded() async {
         guard !didLoad else { return }
         didLoad = true
+
+        if let snapshot = cacheStore?.loadSnapshot(for: story) {
+            blocks = snapshot.blocks
+            restoredScrollAnchor = snapshot.lastScrollAnchor
+        }
         
         if story.url.isEmpty {
-            blocks = fallbackBlocks(from: story.description)
+            if blocks.isEmpty {
+                blocks = fallbackBlocks(from: story.description)
+            }
             return
         }
         
-        isLoading = true
+        isLoading = blocks.isEmpty
         errorMessage = nil
         defer { isLoading = false }
         
         do {
             let parsed = try await fetchAndParseStory(from: story.url)
-            if parsed.isEmpty {
-                blocks = fallbackBlocks(from: story.description)
-            } else {
-                blocks = parsed
+            guard !parsed.isEmpty else {
+                if blocks.isEmpty {
+                    blocks = fallbackBlocks(from: story.description)
+                }
+                return
             }
+
+            blocks = parsed
+            cacheStore?.saveStory(story: story, blocks: parsed, lastScrollAnchor: restoredScrollAnchor)
         } catch {
+            if blocks.isEmpty {
+                blocks = fallbackBlocks(from: story.description)
+            }
             errorMessage = "Unable to load the story content. Showing the excerpt instead."
-            blocks = fallbackBlocks(from: story.description)
         }
+    }
+    
+    func saveScrollAnchor(_ anchor: String?) {
+        guard let anchor else { return }
+        restoredScrollAnchor = anchor
+        cacheStore?.updateScrollAnchor(for: story, anchor: anchor)
     }
     
     private func fetchAndParseStory(from urlString: String) async throws -> [StoryReaderBlock] {
