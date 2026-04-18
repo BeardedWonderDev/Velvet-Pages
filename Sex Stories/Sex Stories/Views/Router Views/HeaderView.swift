@@ -10,10 +10,22 @@ import SwiftUI
 struct HeaderView: View {
     @EnvironmentObject var props: AppProperties
     @EnvironmentObject var scrapper: ScrapperViewModel
-    
-    @SceneStorage("selectedPage") var selectedPage: AppPages = .home
+
+    @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = 0
+    @SceneStorage("showSettings") var showSettings: Bool = false
     @SceneStorage("showSideBar") var showSideBar: Bool = false
-    
+
+    private var headerTitle: String {
+        if showSettings {
+            return "Settings"
+        }
+
+        guard scrapper.sections.indices.contains(selectedSectionIndex) else {
+            return "Stories"
+        }
+        return scrapper.trimmedTitle(scrapper.sections[selectedSectionIndex].title)
+    }
+
     var body: some View {
         // MARK: Search Bar With Menu Button
         HStack(spacing: 10) {
@@ -31,17 +43,17 @@ struct HeaderView: View {
                         .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
                 }
             }
-            
+
             Spacer()
-            
-            Text(selectedPage.rawValue)
+
+            Text(headerTitle)
                 .font(.title3.bold())
                 .foregroundStyle(scrapper.primaryColor)
-            
+
             Spacer()
-            
+
             Button {
-                
+
             } label: {
                 Image(systemName: "bell.circle")
                     .resizable()
@@ -50,7 +62,7 @@ struct HeaderView: View {
                     .symbolRenderingMode(.palette)
                     .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
             }
-                
+
         }
         .padding(.horizontal, 15)
         .padding(.vertical, 10)

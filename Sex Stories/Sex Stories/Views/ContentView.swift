@@ -9,6 +9,11 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel
+    let section: Section?
+
+    init(section: Section? = nil) {
+        self.section = section
+    }
 
     var body: some View {
         Group {
@@ -27,21 +32,14 @@ struct ContentView: View {
                         }
                     }
                     .padding()
+                } else if let section {
+                    SectionView(section: section)
+                        .environmentObject(scrapper)
+                } else if let firstSection = scrapper.sections.first {
+                    SectionView(section: firstSection)
+                        .environmentObject(scrapper)
                 } else {
-                    TabView {
-                        if scrapper.sections.isEmpty {
-                            Text("Loading")
-                        } else {
-                            ForEach(scrapper.sections, id: \.title) { section in
-                                SectionView(section: section)
-                                    .environmentObject(scrapper)
-                                    .tabItem {
-                                        Text(scrapper.trimmedTitle(section.title))
-                                    }
-                            }
-                        }
-                    }
-                    .tabBarMinimizeBehavior(.onScrollDown)
+                    Text("Loading")
                 }
             } else {
                 Text("No Network Available")
@@ -50,6 +48,7 @@ struct ContentView: View {
         }
     }
 }
+
 
 struct SectionView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel

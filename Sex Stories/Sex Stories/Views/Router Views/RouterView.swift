@@ -12,7 +12,13 @@ struct RouterView: View {
     @ObservedObject var props: AppProperties
     @EnvironmentObject var scrapper: ScrapperViewModel
     @SceneStorage("showSideBar") var showSideBar: Bool = false
-    @SceneStorage("selectedPage") var selectedPage: AppPages = .home
+    @SceneStorage("showSettings") var showSettings: Bool = false
+    @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = 0
+
+    private var selectedSection: Section? {
+        guard scrapper.sections.indices.contains(selectedSectionIndex) else { return scrapper.sections.first }
+        return scrapper.sections[selectedSectionIndex]
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,7 +28,9 @@ struct RouterView: View {
                         SidebarView()
                         ScrollView(.vertical, showsIndicators: false) {
                             SidebarView()
+                                .scrollContentBackground(.hidden)
                         }
+                        .scrollContentBackground(.hidden)
                     }
                 }
 
@@ -30,15 +38,10 @@ struct RouterView: View {
                     HeaderView()
                         .padding(.horizontal, 10)
 
-                    switch selectedPage {
-                    case .home:
-                        ContentView()
-                    case .profile:
-                        Text("Profile View")
-                    case .partners:
-                        Text("Partners View")
-                    case .settings:
+                    if showSettings {
                         SettingsView()
+                    } else {
+                        ContentView(section: selectedSection)
                     }
                 }
             }
@@ -53,7 +56,9 @@ struct RouterView: View {
                     SidebarView()
                     ScrollView(.vertical, showsIndicators: false) {
                         SidebarView()
+                            .scrollContentBackground(.hidden)
                     }
+                    .scrollContentBackground(.hidden)
                 }
                 .offset(x: showSideBar ? 0 : -100)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -73,6 +78,11 @@ struct RouterView: View {
             .environmentObject(scrapper)
             .onChange(of: props.isLandscape) { _, _ in
                 showSideBar = false
+            }
+            .onChange(of: scrapper.sections.count) { _, newValue in
+                if selectedSectionIndex >= newValue {
+                    selectedSectionIndex = max(0, newValue - 1)
+                }
             }
         }
     }
