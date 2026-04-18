@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import CryptoKit
 import SwiftSoup
 import SwiftUI
 import SwiftData
@@ -13,6 +14,23 @@ enum StoryReaderBlock: Hashable {
     case paragraph(String)
     case chapterTitle(String)
     case separator
+    
+    var stableAnchorID: String {
+        switch self {
+        case .heading(let text): return "heading-\(Self.stableToken(for: text))"
+        case .paragraph(let text): return "paragraph-\(Self.stableToken(for: text))"
+        case .chapterTitle(let text): return "chapter-\(Self.stableToken(for: text))"
+        case .separator: return "separator"
+        }
+    }
+    
+    private static func stableToken(for text: String) -> String {
+        let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .lowercased()
+        let digest = SHA256.hash(data: Data(normalized.utf8))
+        return digest.compactMap { String(format: "%02x", $0) }.joined().prefix(16).description
+    }
 }
 
 @MainActor
@@ -23,6 +41,7 @@ final class StoryReaderViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var restoredScrollAnchor: String?
+    @Published var currentScrollAnchor: String?
     
     private var cacheStore: StoryCacheStore?
     private var didLoad = false
@@ -44,6 +63,7 @@ final class StoryReaderViewModel: ObservableObject {
         if let snapshot = cacheStore?.loadSnapshot(for: story) {
             blocks = snapshot.blocks
             restoredScrollAnchor = snapshot.lastScrollAnchor
+            currentScrollAnchor = snapshot.lastScrollAnchor
         }
         
         if story.url.isEmpty {
@@ -78,8 +98,25 @@ final class StoryReaderViewModel: ObservableObject {
     
     func saveScrollAnchor(_ anchor: String?) {
         guard let anchor else { return }
+        currentScrollAnchor = anchor
         restoredScrollAnchor = anchor
         cacheStore?.updateScrollAnchor(for: story, anchor: anchor)
+    }
+    
+    func resolvedScrollAnchor(from cachedAnchor: String?) -> String? {
+        guard let cachedAnchor else { return nil }
+        if blocks.contains(where: { $0.stableAnchorID == cachedAnchor }) {
+            return cachedAnchor
+        }
+        
+        if cachedAnchor.hasPrefix("block-"),
+           let indexString = cachedAnchor.split(separator: "-").last,
+           let index = Int(indexString),
+           blocks.indices.contains(index) {
+            return blocks[index].stableAnchorID
+        }
+        
+        return cachedAnchor
     }
     
     private func fetchAndParseStory(from urlString: String) async throws -> [StoryReaderBlock] {
