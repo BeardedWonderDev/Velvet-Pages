@@ -36,6 +36,7 @@ struct HeaderView: View {
             
             Text(selectedPage.rawValue)
                 .font(.title3.bold())
+                .foregroundStyle(scrapper.primaryColor)
             
             Spacer()
             

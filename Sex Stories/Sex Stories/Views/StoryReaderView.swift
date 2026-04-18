@@ -25,11 +25,10 @@ struct StoryReaderView: View {
                     Text(error).foregroundStyle(.red).multilineTextAlignment(.center)
                 }
                 else {
-                    // Header
                     VStack(alignment: .leading, spacing: 10) {
                         Text(viewModel.story.title)
-                            .font(.title.bold())
-                            .foregroundStyle(viewModel.readerTextColor)
+                            .font(.system(size: scrapper.fontSize + 6, weight: .bold, design: .serif))
+                            .foregroundStyle(scrapper.primaryColor)
                         
                         HStack {
                             if !viewModel.story.author.isEmpty {
@@ -40,44 +39,41 @@ struct StoryReaderView: View {
                             }
                         }
                         .font(.caption)
-                        .foregroundStyle(viewModel.readerTextColor.opacity(0.72))
+                        .foregroundStyle(scrapper.secondaryColor.opacity(0.72))
                         
                         if !viewModel.story.themes.isEmpty {
                             Text(viewModel.story.themes.joined(separator: " • "))
                                 .font(.footnote)
-                                .foregroundStyle(viewModel.readerTextColor.opacity(0.72))
+                                .foregroundStyle(scrapper.secondaryColor.opacity(0.72))
                         }
                     }
                     
-                    readerControls
-                    
-                    // Story Content
                     VStack(alignment: .leading, spacing: 24) {
                         ForEach(Array(viewModel.blocks.enumerated()), id: \.offset) { _, block in
                             switch block {
                             case .heading(let text):
                                 Text(text)
-                                    .font(.title2.bold())
-                                    .foregroundStyle(viewModel.readerTextColor)
+                                    .font(.system(size: scrapper.fontSize + 2, weight: .bold, design: .serif))
+                                    .foregroundStyle(scrapper.primaryColor)
                                     .padding(.top, 8)
                                 
                             case .chapterTitle(let text):
                                 Text(text)
-                                    .font(.title.bold())
+                                    .font(.system(size: scrapper.fontSize + 6, weight: .bold, design: .serif))
                                     .multilineTextAlignment(.center)
-                                    .foregroundStyle(viewModel.readerTextColor)
+                                    .foregroundStyle(scrapper.primaryColor)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 20)
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .fill(viewModel.readerAccentColor.opacity(0.12))
+                                            .fill(scrapper.accentColor.opacity(0.12))
                                     )
                                 
                             case .paragraph(let text):
                                 Text(try! AttributedString(markdown: text))
-                                    .font(viewModel.readerFont)
-                                    .lineSpacing(viewModel.lineSpacing)
-                                    .foregroundStyle(viewModel.readerTextColor)
+                                    .font(.system(size: scrapper.fontSize, weight: .regular, design: .serif))
+                                    .lineSpacing(1.4)
+                                    .foregroundStyle(scrapper.primaryColor)
                                     .textSelection(.enabled)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 
@@ -91,51 +87,11 @@ struct StoryReaderView: View {
             .padding(.horizontal)
             .padding(.bottom, 40)
         }
-        .background(viewModel.readerBackground.ignoresSafeArea())
+        .background(scrapper.backgroundColor.ignoresSafeArea())
         .navigationTitle("Reader")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.loadStoryIfNeeded()
-        }
-    }
-    
-    private var readerControls: some View {
-        VStack(spacing: 18) {
-            Picker("Background", selection: $viewModel.readerTheme) {
-                ForEach(StoryReaderTheme.allCases) { theme in
-                    Text(theme.label).tag(theme)
-                }
-            }
-            .pickerStyle(.segmented)
-            
-            VStack {
-                HStack {
-                    Text("Text Size")
-                    Spacer()
-                    Text("\(Int(viewModel.fontSize)) pt")
-                }
-                Slider(value: $viewModel.fontSize, in: 14...32, step: 1)
-            }
-            
-            VStack {
-                HStack {
-                    Text("Line Spacing")
-                    Spacer()
-                    Text(String(format: "%.1f", viewModel.lineSpacing))
-                }
-                Slider(value: $viewModel.lineSpacing, in: 1.0...2.6, step: 0.1)
-            }
-        }
-        .padding()
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
-    }
-
-    private func themeLabel(_ theme: AppTheme) -> String {
-        switch theme {
-        case .classicReadability: return "Classic"
-        case .modernMinimalist: return "Minimal"
-        case .nightMode: return "Night"
-        case .natureInspired: return "Nature"
         }
     }
 }

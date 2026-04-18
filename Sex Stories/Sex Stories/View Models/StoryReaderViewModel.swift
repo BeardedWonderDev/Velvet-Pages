@@ -7,36 +7,10 @@ import Foundation
 import SwiftSoup
 import SwiftUI
 
-enum StoryReaderTheme: String, CaseIterable, Identifiable {
-    case light
-    case sepia
-    case night
-    case paper
-
-    var id: String { rawValue }
-
-    var label: String {
-        rawValue.capitalized
-    }
-
-    var colors: (background: Color, text: Color, accent: Color) {
-        switch self {
-        case .light:
-            return (.white, .black, .blue)
-        case .sepia:
-            return (Color(red: 0.96, green: 0.92, blue: 0.84), .black, .brown)
-        case .night:
-            return (Color(red: 0.09, green: 0.10, blue: 0.14), .white, .mint)
-        case .paper:
-            return (Color(red: 0.98, green: 0.97, blue: 0.94), .primary, .teal)
-        }
-    }
-}
-
 enum StoryReaderBlock: Hashable {
     case heading(String)
-    case paragraph(String)      // Now supports markdown-style **bold** and *italic*
-    case chapterTitle(String)   // New: Dedicated chapter support
+    case paragraph(String)
+    case chapterTitle(String)
     case separator
 }
 
@@ -47,24 +21,10 @@ final class StoryReaderViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
-    @Published var readerTheme: StoryReaderTheme = .paper {
-        didSet { applyTheme() }
-    }
-    @Published var fontSize: Double = 18 {
-        didSet { readerFont = .system(size: fontSize, weight: .regular, design: .serif) }
-    }
-    @Published var lineSpacing: Double = 1.4
-    @Published var readerFont: Font = .system(size: 18, weight: .regular, design: .serif)
-    @Published var readerBackground: Color = Color(red: 0.98, green: 0.97, blue: 0.94)
-    @Published var readerTextColor: Color = .primary
-    @Published var readerAccentColor: Color = .teal
-    
     private var didLoad = false
     
     init(story: Story) {
         self.story = story
-        self.readerFont = .system(size: fontSize, weight: .regular, design: .serif)
-        applyTheme()
     }
     
     @MainActor
@@ -101,20 +61,14 @@ final class StoryReaderViewModel: ObservableObject {
         return parseStoryBody(html: html)
     }
     
-    // MARK: - Enhanced Parser for sexstories.com / xnxx stories
-
     private func parseStoryBody(html: String) -> [StoryReaderBlock] {
         do {
             let doc = try SwiftSoup.parse(html)
-            
-            // Target the exact story content (second .block_panel on sexstories.com)
             let blockPanels = try doc.select(".block_panel")
             if blockPanels.size() > 1 {
                 let storyElement = blockPanels.get(1)
                 return parseStoryElement(storyElement)
             }
-            
-            // Fallbacks
             let selectors = ["article", ".story-content", ".entry-content", ".content", "main"]
             for selector in selectors {
                 if let element = try doc.select(selector).first() {
@@ -122,7 +76,6 @@ final class StoryReaderViewModel: ObservableObject {
                     if !result.isEmpty { return result }
                 }
             }
-            
             if let body = doc.body() {
                 return parseStoryElement(body)
             }
@@ -136,29 +89,19 @@ final class StoryReaderViewModel: ObservableObject {
         do {
             let rawHTML = try element.html()
             let cleanedText = cleanAndNormalizeHTML(rawHTML)
-            
-            // Split on double newlines → each becomes a proper paragraph
             let paragraphs = cleanedText
                 .components(separatedBy: "\n\n")
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
             
-            var blocks: [StoryReaderBlock] = []
-            
-            for paragraph in paragraphs {
+            return paragraphs.map { paragraph in
                 let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
-                
-                // Only very obvious Chapter markers become chapterTitle (still useful)
                 if trimmed.hasPrefix("Chapter ") || trimmed.lowercased().contains("chapter ") {
-                    blocks.append(.chapterTitle(trimmed.replacingOccurrences(of: "**", with: "")))
-                }
-                // Everything else (including dialogue, quotes, etc.) is a normal paragraph
-                else {
-                    blocks.append(.paragraph(trimmed))
+                    return .chapterTitle(trimmed.replacingOccurrences(of: "**", with: ""))
+                } else {
+                    return .paragraph(trimmed)
                 }
             }
-            
-            return blocks
         } catch {
             print("Element parse error: \(error)")
             return []
@@ -167,15 +110,9 @@ final class StoryReaderViewModel: ObservableObject {
 
     private func cleanAndNormalizeHTML(_ html: String) -> String {
         var text = html
-        
-        // ── Convert ALL <br> tags into proper newlines ──
         text = text.replacingOccurrences(of: "<br ?/?>", with: "\n", options: .regularExpression)
-        
-        // ── Convert formatting spans to markdown ──
         text = text.replacingOccurrences(of: #"<span class="italic">(.*?)</span>"#, with: "*$1*", options: .regularExpression)
         text = text.replacingOccurrences(of: #"<span class="bold">(.*?)</span>"#, with: "**$1**", options: .regularExpression)
-        
-        // ── Fix common HTML entities (quotes, etc.) ──
         let entities: [String: String] = [
             "&ldquo;": "“", "&rdquo;": "”",
             "&lsquo;": "‘", "&rsquo;": "’",
@@ -184,45 +121,17 @@ final class StoryReaderViewModel: ObservableObject {
         for (key, value) in entities {
             text = text.replacingOccurrences(of: key, with: value)
         }
-        
-        // ── Remove any leftover HTML tags ──
         text = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
-        
-        // ── Clean up whitespace ──
         text = text.replacingOccurrences(of: " {2,}", with: " ", options: .regularExpression)
         text = text.replacingOccurrences(of: "\n{3,}", with: "\n\n\n", options: .regularExpression)
-        
         return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    
-    private func collapseAdjacentParagraphs(_ blocks: [StoryReaderBlock]) -> [StoryReaderBlock] {
-        var output: [StoryReaderBlock] = []
-        
-        for block in blocks {
-            if case .paragraph(let newText) = block,
-               case .paragraph(let lastText) = output.last {
-                output.removeLast()
-                output.append(.paragraph(lastText + "\n\n" + newText))
-            } else {
-                output.append(block)
-            }
-        }
-        return output
-    }
-    
+
     private func fallbackBlocks(from text: String) -> [StoryReaderBlock] {
         let parts = text
             .components(separatedBy: "\n\n")
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
-        
         return parts.map { .paragraph($0) }
     }
-
-    private func applyTheme() {
-        readerBackground = readerTheme.colors.background
-        readerTextColor = readerTheme.colors.text
-        readerAccentColor = readerTheme.colors.accent
-    }
-    
 }

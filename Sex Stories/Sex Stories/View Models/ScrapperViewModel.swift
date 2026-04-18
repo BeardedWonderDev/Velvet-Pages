@@ -11,23 +11,32 @@ import SwiftSoup
 import SwiftUI
 
 enum AppTheme: String, CaseIterable, Identifiable {
-    case classicReadability
-    case modernMinimalist
-    case nightMode
-    case natureInspired
+    case light
+    case sepia
+    case night
+    case paper
 
     var id: String { rawValue }
 
+    var label: String {
+        switch self {
+        case .light: return "Light"
+        case .sepia: return "Sepia"
+        case .night: return "Night"
+        case .paper: return "Paper"
+        }
+    }
+
     var colors: (primary: Color, secondary: Color, accent: Color, background: Color) {
         switch self {
-        case .classicReadability:
-            return (.softCream, .darkSlateGray, .oldRose, .ivory)
-        case .modernMinimalist:
-            return (.ghostWhite, .charcoal, .stealBlue, .aliceBlue)
-        case .nightMode:
-            return (.midnightBlue, .honeydew, .electricLavender, .richBlack)
-        case .natureInspired:
-            return (.mossGreen, .saddleBrown, .camel, .backgroundBeige)
+        case .light:
+            return (.black, .secondary, .blue, .white)
+        case .sepia:
+            return (.black, .secondary, .brown, Color(red: 0.96, green: 0.92, blue: 0.84))
+        case .night:
+            return (.white, Color.white.opacity(0.75), .mint, Color(red: 0.09, green: 0.10, blue: 0.14))
+        case .paper:
+            return (.primary, .secondary, .teal, Color(red: 0.98, green: 0.97, blue: 0.94))
         }
     }
 }
@@ -62,19 +71,35 @@ final class ScrapperViewModel: ObservableObject {
 
     private var loadInProgress = false
 
-    @Published var selectedTheme: AppTheme = .natureInspired {
-        didSet { applyTheme(selectedTheme) }
+    @AppStorage("selectedTheme") private var storedTheme: String = AppTheme.paper.rawValue
+    @AppStorage("readerFontSize") private var storedFontSize: Double = 18
+
+    @Published var selectedTheme: AppTheme = .paper {
+        didSet {
+            applyTheme(selectedTheme)
+            storedTheme = selectedTheme.rawValue
+        }
     }
+    @Published var fontSize: Double = 18 {
+        didSet { storedFontSize = fontSize }
+    }
+
     @Published var primaryColor: Color
     @Published var secondaryColor: Color
     @Published var accentColor: Color
     @Published var backgroundColor: Color
 
     init() {
-        self.primaryColor = AppTheme.natureInspired.colors.primary
-        self.secondaryColor = AppTheme.natureInspired.colors.secondary
-        self.accentColor = AppTheme.natureInspired.colors.accent
-        self.backgroundColor = AppTheme.natureInspired.colors.background
+        let defaults = UserDefaults.standard
+        let initialTheme = AppTheme(rawValue: defaults.string(forKey: "selectedTheme") ?? AppTheme.paper.rawValue) ?? .paper
+        let initialFontSize = defaults.object(forKey: "readerFontSize") as? Double ?? 18
+
+        self.selectedTheme = initialTheme
+        self.fontSize = initialFontSize
+        self.primaryColor = initialTheme.colors.primary
+        self.secondaryColor = initialTheme.colors.secondary
+        self.accentColor = initialTheme.colors.accent
+        self.backgroundColor = initialTheme.colors.background
 
         monitor = NWPathMonitor()
         startMonitoring()

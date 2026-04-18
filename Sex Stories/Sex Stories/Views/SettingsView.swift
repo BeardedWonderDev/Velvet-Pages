@@ -13,24 +13,37 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 20) {
                 Text("Settings")
                     .font(.largeTitle.bold())
+                    .foregroundStyle(scrapper.primaryColor)
 
-                GroupBox("App Theme") {
-                    VStack(alignment: .leading, spacing: 14) {
+                themedCard(title: "Appearance") {
+                    VStack(alignment: .leading, spacing: 16) {
                         Picker("Theme", selection: $scrapper.selectedTheme) {
                             ForEach(AppTheme.allCases) { theme in
-                                Text(themeLabel(theme)).tag(theme)
+                                Text(theme.label).tag(theme)
                             }
                         }
                         .pickerStyle(.menu)
+                        .tint(scrapper.accentColor)
+                        .foregroundStyle(scrapper.primaryColor)
 
-                        Text("This theme now drives the reader, header, and sidebar.")
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Font Size")
+                                Spacer()
+                                Text("\(Int(scrapper.fontSize)) pt")
+                            }
+                            Slider(value: $scrapper.fontSize, in: 14...32, step: 1)
+                                .tint(scrapper.accentColor)
+                        }
+
+                        Text("Theme and font size apply across the entire app, including the reader.")
                             .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(scrapper.secondaryColor)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                GroupBox("Theme Preview") {
+                themedCard(title: "Theme Preview") {
                     VStack(alignment: .leading, spacing: 10) {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(scrapper.primaryColor)
@@ -51,15 +64,25 @@ struct SettingsView: View {
             .padding()
         }
         .background(scrapper.backgroundColor.ignoresSafeArea())
-        .foregroundStyle(scrapper.secondaryColor)
+        .foregroundStyle(scrapper.primaryColor)
     }
 
-    private func themeLabel(_ theme: AppTheme) -> String {
-        switch theme {
-        case .classicReadability: return "Classic Readability"
-        case .modernMinimalist: return "Modern Minimalist"
-        case .nightMode: return "Night Mode"
-        case .natureInspired: return "Nature Inspired"
+    private func themedCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(scrapper.primaryColor)
+            content()
         }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.08 : 0.12))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(scrapper.primaryColor.opacity(0.12), lineWidth: 1)
+        )
     }
 }
