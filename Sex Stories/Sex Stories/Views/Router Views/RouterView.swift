@@ -13,7 +13,7 @@ struct RouterView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel
     @SceneStorage("showSideBar") var showSideBar: Bool = false
     @SceneStorage("showSettings") var showSettings: Bool = false
-    @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = 0
+    @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = -1
 
     private var selectedSection: Section? {
         guard scrapper.sections.indices.contains(selectedSectionIndex) else { return scrapper.sections.first }
@@ -33,6 +33,8 @@ struct RouterView: View {
 
                     if showSettings {
                         SettingsView()
+                    } else if selectedSectionIndex < 0 {
+                        LibraryView()
                     } else {
                         ContentView(section: selectedSection)
                     }
@@ -67,7 +69,7 @@ struct RouterView: View {
             }
             .onChange(of: scrapper.sections.count) { _, newValue in
                 if selectedSectionIndex >= newValue {
-                    selectedSectionIndex = max(0, newValue - 1)
+                    selectedSectionIndex = newValue > 0 ? newValue - 1 : -1
                 }
             }
         }

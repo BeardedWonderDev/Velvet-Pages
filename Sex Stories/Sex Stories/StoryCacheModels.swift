@@ -13,6 +13,7 @@ final class CachedStoryRecord {
     var blocksData: Data
     var lastUpdated: Date
     var lastScrollAnchor: String?
+    var lastReadProgress: Double
 
     init(
         storyID: String,
@@ -24,7 +25,8 @@ final class CachedStoryRecord {
         themesCSV: String,
         blocksData: Data,
         lastUpdated: Date = .now,
-        lastScrollAnchor: String? = nil
+        lastScrollAnchor: String? = nil,
+        lastReadProgress: Double = 0
     ) {
         self.storyID = storyID
         self.storyURL = storyURL
@@ -36,6 +38,7 @@ final class CachedStoryRecord {
         self.blocksData = blocksData
         self.lastUpdated = lastUpdated
         self.lastScrollAnchor = lastScrollAnchor
+        self.lastReadProgress = lastReadProgress
     }
 }
 
@@ -59,6 +62,8 @@ struct CachedStorySnapshot {
     let themes: [String]
     let blocks: [StoryReaderBlock]
     let lastScrollAnchor: String?
+    let lastReadProgress: Double
+    let lastUpdated: Date
 }
 
 extension CachedStoryRecord {
@@ -73,7 +78,9 @@ extension CachedStoryRecord {
             postedDate: postedDate,
             themes: themesCSV.split(separator: "|").map(String.init),
             blocks: blocks,
-            lastScrollAnchor: lastScrollAnchor
+            lastScrollAnchor: lastScrollAnchor,
+            lastReadProgress: lastReadProgress,
+            lastUpdated: lastUpdated
         )
     }
 }

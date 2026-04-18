@@ -10,10 +10,8 @@ struct SettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Settings")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(scrapper.primaryColor)
+            VStack(alignment: .leading, spacing: 18) {
+                header
 
                 themedCard(title: "Appearance") {
                     VStack(alignment: .leading, spacing: 16) {
@@ -65,6 +63,18 @@ struct SettingsView: View {
         }
         .background(scrapper.backgroundColor.ignoresSafeArea())
         .foregroundStyle(scrapper.primaryColor)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Settings")
+                .font(.largeTitle.bold())
+                .foregroundStyle(scrapper.primaryColor)
+            Text("Adjust appearance and reading preferences.")
+                .font(.callout)
+                .foregroundStyle(scrapper.secondaryColor)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func themedCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {

@@ -19,19 +19,9 @@ struct ContentView: View {
         Group {
             if scrapper.isConnected {
                 if scrapper.isLoading && scrapper.sections.isEmpty {
-                    ProgressView("Loading")
+                    loadingState
                 } else if let loadError = scrapper.loadError {
-                    VStack(spacing: 12) {
-                        Text(loadError)
-                            .multilineTextAlignment(.center)
-                            .foregroundStyle(scrapper.primaryColor)
-                        Button("Try Again") {
-                            Task {
-                                await scrapper.loadSectionsIfNeeded(forceRefresh: true)
-                            }
-                        }
-                    }
-                    .padding()
+                    errorState(message: loadError)
                 } else if let section {
                     SectionView(section: section)
                         .environmentObject(scrapper)
@@ -39,13 +29,55 @@ struct ContentView: View {
                     SectionView(section: firstSection)
                         .environmentObject(scrapper)
                 } else {
-                    Text("Loading")
+                    emptyState
                 }
             } else {
-                Text("No Network Available")
-                    .foregroundStyle(scrapper.primaryColor)
+                errorState(message: "No Network Available")
             }
         }
+    }
+
+    private var loadingState: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+            Text("Loading stories...")
+                .font(.footnote)
+                .foregroundStyle(scrapper.secondaryColor)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(scrapper.backgroundColor.ignoresSafeArea())
+    }
+
+    private var emptyState: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "book.closed")
+                .font(.system(size: 30, weight: .semibold))
+                .foregroundStyle(scrapper.accentColor)
+            Text("No stories available")
+                .font(.headline)
+                .foregroundStyle(scrapper.primaryColor)
+            Text("Try refreshing or check back once content loads.")
+                .font(.footnote)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(scrapper.secondaryColor)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(scrapper.backgroundColor.ignoresSafeArea())
+    }
+
+    private func errorState(message: String) -> some View {
+        VStack(spacing: 12) {
+            Text(message)
+                .multilineTextAlignment(.center)
+                .foregroundStyle(scrapper.primaryColor)
+            Button("Try Again") {
+                Task { await scrapper.loadSectionsIfNeeded(forceRefresh: true) }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(scrapper.backgroundColor.ignoresSafeArea())
     }
 }
 
@@ -55,67 +87,75 @@ struct SectionView: View {
     var section: Section
 
     private var cardBackground: Color {
-        switch scrapper.selectedTheme {
-        case .night:
-            return Color(red: 0.14, green: 0.15, blue: 0.22)
-        case .sepia:
-            return Color(red: 0.98, green: 0.93, blue: 0.83)
-        case .paper:
-            return Color(red: 0.99, green: 0.98, blue: 0.96)
-        case .light:
-            return Color.white
-        }
+        scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.10 : 0.06)
     }
 
     var body: some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(section.stories) { story in
-                    if !story.title.isEmpty {
-                        NavigationLink {
-                            StoryReaderView(story: story)
-                                .environmentObject(scrapper)
-                        } label: {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text(story.title)
-                                    .font(.title2)
-                                    .foregroundStyle(scrapper.primaryColor)
-                                
-                                Text(story.description)
-                                    .font(.callout)
-                                    .foregroundStyle(scrapper.selectedTheme == .night ? Color.white.opacity(0.88) : scrapper.primaryColor.opacity(0.85))
-                                    .padding(.bottom, 8)
+            VStack(alignment: .leading, spacing: 18) {
+                header
 
-                                Text("Themes:")
-                                    .font(.headline)
-                                    .foregroundStyle(scrapper.primaryColor)
-                                Text(story.themes.joined(separator: ", "))
-                                    .font(.footnote)
-                                    .foregroundStyle(scrapper.secondaryColor)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                LazyVStack(spacing: 12) {
+                    ForEach(section.stories) { story in
+                        if !story.title.isEmpty {
+                            NavigationLink {
+                                StoryReaderView(story: story)
+                                    .environmentObject(scrapper)
+                            } label: {
+                                storyCard(story: story)
                             }
-                            .padding(16)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .fill(cardBackground)
-                                    .shadow(color: .black.opacity(scrapper.selectedTheme == .night ? 0.35 : 0.12), radius: 10, x: 0, y: 4)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .stroke(scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.16 : 0.08), lineWidth: 1)
-                            )
-                            .padding(.horizontal, 10)
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             }
+            .padding()
         }
-        .padding(.horizontal, 8)
         .background(scrapper.backgroundColor.ignoresSafeArea())
         .refreshable {
             await scrapper.loadSectionsIfNeeded(forceRefresh: true)
         }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(scrapper.trimmedTitle(section.title))
+                .font(.largeTitle.bold())
+                .foregroundStyle(scrapper.primaryColor)
+
+            Text("Browse stories in a consistent card layout.")
+                .font(.callout)
+                .foregroundStyle(scrapper.secondaryColor)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func storyCard(story: Story) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(story.title)
+                .font(.title3.weight(.semibold))
+                .foregroundStyle(scrapper.primaryColor)
+
+            Text(story.description)
+                .font(.callout)
+                .foregroundStyle(scrapper.selectedTheme == .night ? Color.white.opacity(0.88) : scrapper.primaryColor.opacity(0.85))
+                .lineLimit(3)
+
+            if !story.themes.isEmpty {
+                Text(story.themes.joined(separator: ", "))
+                    .font(.footnote)
+                    .foregroundStyle(scrapper.secondaryColor)
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(cardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+        )
     }
 }

@@ -28,7 +28,7 @@ struct SidebarView: View {
                         .foregroundStyle(scrapper.accentColor)
                         .frame(width: 20)
 
-                    Text("Stories")
+                    Text("SexStories.com")
                         .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundStyle(scrapper.primaryColor)
@@ -36,6 +36,18 @@ struct SidebarView: View {
                     Spacer(minLength: 0)
                 }
                 .padding(.bottom, 10)
+
+                sidebarItem(
+                    title: "Library",
+                    systemImage: "books.vertical",
+                    isSelected: !showSettings && selectedSectionIndex < 0,
+                    action: {
+                        withAnimation(.easeInOut) {
+                            showSettings = false
+                            selectedSectionIndex = -1
+                        }
+                    }
+                )
 
                 ForEach(Array(sectionItems.enumerated()), id: \.offset) { index, section in
                     sidebarItem(

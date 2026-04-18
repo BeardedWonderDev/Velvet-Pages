@@ -20,6 +20,9 @@ struct HeaderView: View {
             return "Settings"
         }
 
+        if selectedSectionIndex < 0 {
+            return "Library"
+        }
         guard scrapper.sections.indices.contains(selectedSectionIndex) else {
             return "Stories"
         }
@@ -27,7 +30,6 @@ struct HeaderView: View {
     }
 
     var body: some View {
-        // MARK: Search Bar With Menu Button
         HStack(spacing: 10) {
             if !props.isiPad || (props.isiPad && !props.isLandscape) {
                 Button {
@@ -44,16 +46,18 @@ struct HeaderView: View {
                 }
             }
 
-            Spacer()
-
-            Text(headerTitle)
-                .font(.title3.bold())
-                .foregroundStyle(scrapper.primaryColor)
-
-            Spacer()
+            VStack(alignment: .center, spacing: 2) {
+                Text(headerTitle)
+                    .font(.title3.bold())
+                    .foregroundStyle(scrapper.primaryColor)
+                Text(showSettings ? "Preferences" : "Stories")
+                    .font(.caption)
+                    .foregroundStyle(scrapper.secondaryColor)
+            }
+            .frame(maxWidth: .infinity)
 
             Button {
-
+                // Placeholder for future notification functionality.
             } label: {
                 Image(systemName: "bell.circle")
                     .resizable()
@@ -62,13 +66,16 @@ struct HeaderView: View {
                     .symbolRenderingMode(.palette)
                     .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
             }
-
         }
         .padding(.horizontal, 15)
-        .padding(.vertical, 10)
+        .padding(.vertical, 12)
         .background {
-            Capsule()
-                .fill(scrapper.backgroundColor.opacity(0.85))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(scrapper.backgroundColor.opacity(0.88))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+                )
         }
     }
 }

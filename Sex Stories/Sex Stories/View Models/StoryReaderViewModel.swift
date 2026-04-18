@@ -102,6 +102,10 @@ final class StoryReaderViewModel: ObservableObject {
         restoredScrollAnchor = anchor
         cacheStore?.updateScrollAnchor(for: story, anchor: anchor)
     }
+
+    func saveReadingProgress(_ progress: Double) {
+        cacheStore?.updateReadingProgress(for: story, progress: progress)
+    }
     
     func resolvedScrollAnchor(from cachedAnchor: String?) -> String? {
         guard let cachedAnchor else { return nil }

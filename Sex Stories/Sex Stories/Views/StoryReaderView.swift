@@ -143,6 +143,7 @@ struct StoryReaderView: View {
                 
                 if let topAnchor {
                     viewModel.currentScrollAnchor = topAnchor
+                    viewModel.saveScrollAnchor(topAnchor)
                 }
             }
             .task {
@@ -160,7 +161,13 @@ struct StoryReaderView: View {
                 }
             }
             .onDisappear {
-                viewModel.saveScrollAnchor(viewModel.currentScrollAnchor ?? viewModel.restoredScrollAnchor)
+                let anchor = viewModel.currentScrollAnchor ?? viewModel.restoredScrollAnchor
+                viewModel.saveScrollAnchor(anchor)
+                if !viewModel.blocks.isEmpty {
+                    let total = Double(max(viewModel.blocks.count, 1))
+                    let currentIndex = Double(viewModel.blocks.firstIndex(where: { $0.stableAnchorID == anchor }) ?? 0)
+                    viewModel.saveReadingProgress(min(1, (currentIndex + 1) / total))
+                }
             }
         }
     }

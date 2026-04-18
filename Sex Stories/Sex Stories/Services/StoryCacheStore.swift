@@ -22,7 +22,8 @@ final class StoryCacheStore {
     func saveStory(
         story: Story,
         blocks: [StoryReaderBlock],
-        lastScrollAnchor: String? = nil
+        lastScrollAnchor: String? = nil,
+        lastReadProgress: Double = 0
     ) {
         guard let blocksData = try? StoryBlockCacheCoder.encode(blocks) else { return }
 
@@ -39,7 +40,8 @@ final class StoryCacheStore {
                 postedDate: story.postedDate,
                 themesCSV: story.themes.joined(separator: "|"),
                 blocksData: blocksData,
-                lastScrollAnchor: lastScrollAnchor
+                lastScrollAnchor: lastScrollAnchor,
+                lastReadProgress: lastReadProgress
             )
             modelContext.insert(record)
             try? modelContext.save()
@@ -57,7 +59,15 @@ final class StoryCacheStore {
         if lastScrollAnchor != nil {
             record.lastScrollAnchor = lastScrollAnchor
         }
+        record.lastReadProgress = max(0, min(1, lastReadProgress))
 
+        try? modelContext.save()
+    }
+
+    func updateReadingProgress(for story: Story, progress: Double) {
+        guard let record = cachedStory(for: story) else { return }
+        record.lastReadProgress = max(0, min(1, progress))
+        record.lastUpdated = .now
         try? modelContext.save()
     }
 
