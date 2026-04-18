@@ -7,11 +7,30 @@ import Foundation
 import SwiftSoup
 import SwiftUI
 
-enum StoryReaderTheme: String, CaseIterable {
+enum StoryReaderTheme: String, CaseIterable, Identifiable {
     case light
     case sepia
     case night
     case paper
+
+    var id: String { rawValue }
+
+    var label: String {
+        rawValue.capitalized
+    }
+
+    var colors: (background: Color, text: Color, accent: Color) {
+        switch self {
+        case .light:
+            return (.white, .black, .blue)
+        case .sepia:
+            return (Color(red: 0.96, green: 0.92, blue: 0.84), .black, .brown)
+        case .night:
+            return (Color(red: 0.09, green: 0.10, blue: 0.14), .white, .mint)
+        case .paper:
+            return (Color(red: 0.98, green: 0.97, blue: 0.94), .primary, .teal)
+        }
+    }
 }
 
 enum StoryReaderBlock: Hashable {
@@ -36,8 +55,9 @@ final class StoryReaderViewModel: ObservableObject {
     }
     @Published var lineSpacing: Double = 1.4
     @Published var readerFont: Font = .system(size: 18, weight: .regular, design: .serif)
-    @Published var readerBackground: Color = .white
+    @Published var readerBackground: Color = Color(red: 0.98, green: 0.97, blue: 0.94)
     @Published var readerTextColor: Color = .primary
+    @Published var readerAccentColor: Color = .teal
     
     private var didLoad = false
     
@@ -198,21 +218,11 @@ final class StoryReaderViewModel: ObservableObject {
         
         return parts.map { .paragraph($0) }
     }
-    
+
     private func applyTheme() {
-        switch readerTheme {
-        case .light:
-            readerBackground = .white
-            readerTextColor = .black
-        case .sepia:
-            readerBackground = Color(red: 0.96, green: 0.92, blue: 0.84)
-            readerTextColor = .black
-        case .night:
-            readerBackground = Color(red: 0.09, green: 0.10, blue: 0.14)
-            readerTextColor = .white
-        case .paper:
-            readerBackground = Color(red: 0.98, green: 0.97, blue: 0.94)
-            readerTextColor = .primary
-        }
+        readerBackground = readerTheme.colors.background
+        readerTextColor = readerTheme.colors.text
+        readerAccentColor = readerTheme.colors.accent
     }
+    
 }

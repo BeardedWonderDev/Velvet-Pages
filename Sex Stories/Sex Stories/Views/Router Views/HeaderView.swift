@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HeaderView: View {
     @EnvironmentObject var props: AppProperties
+    @EnvironmentObject var scrapper: ScrapperViewModel
     
     @SceneStorage("selectedPage") var selectedPage: AppPages = .home
     @SceneStorage("showSideBar") var showSideBar: Bool = false
@@ -27,7 +28,7 @@ struct HeaderView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 27, height: 27)
                         .symbolRenderingMode(.palette)
-                        .foregroundStyle(.pink, .teal)
+                        .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
                 }
             }
             
@@ -46,7 +47,7 @@ struct HeaderView: View {
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 27, height: 27)
                     .symbolRenderingMode(.palette)
-                    .foregroundStyle(.pink, .teal)
+                    .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
             }
                 
         }
@@ -54,7 +55,7 @@ struct HeaderView: View {
         .padding(.vertical, 10)
         .background {
             Capsule()
-                .fill(.gray.opacity(0.5))
+                .fill(scrapper.backgroundColor.opacity(0.85))
         }
     }
 }

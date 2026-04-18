@@ -11,7 +11,7 @@ enum AppPages: String, CaseIterable, Codable, Hashable {
     case home = "Home"
     case profile = "Default Profile"
     case partners = "Partners"
-    case account = "Account"
+    case settings = "Settings"
     
     var image: String {
         switch self {
@@ -21,8 +21,8 @@ enum AppPages: String, CaseIterable, Codable, Hashable {
             return "person.text.rectangle"
         case .partners:
             return "person.3.sequence"
-        case .account:
-            return "person.circle"
+        case .settings:
+            return "gearshape"
         }
     }
 }

@@ -21,6 +21,7 @@
 		2B9630C52B1450CA002E853B /* AppProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9630C42B1450CA002E853B /* AppProperties.swift */; };
 		2B9630D02B999001002E853B /* StoryReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9630D12B999001002E853B /* StoryReaderView.swift */; };
 		2B9630D22B999001002E853B /* StoryReaderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9630D32B999001002E853B /* StoryReaderViewModel.swift */; };
+		BBFF7F712F9357B500FAB220 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F702F9357B500FAB220 /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		2B9630C42B1450CA002E853B /* AppProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppProperties.swift; sourceTree = "<group>"; };
 		2B9630D12B999001002E853B /* StoryReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryReaderView.swift; sourceTree = "<group>"; };
 		2B9630D32B999001002E853B /* StoryReaderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryReaderViewModel.swift; sourceTree = "<group>"; };
+		BBFF7F702F9357B500FAB220 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +111,7 @@
 				2B9630B82B14505C002E853B /* ResponsiveView.swift */,
 				2B9630A42B143F14002E853B /* ContentView.swift */,
 				2B9630D12B999001002E853B /* StoryReaderView.swift */,
+				BBFF7F702F9357B500FAB220 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -215,6 +218,7 @@
 				2B9630A52B143F14002E853B /* ContentView.swift in Sources */,
 				2B9630A32B143F14002E853B /* Sex_StoriesApp.swift in Sources */,
 				2B9630C12B145089002E853B /* HeaderView.swift in Sources */,
+				BBFF7F712F9357B500FAB220 /* SettingsView.swift in Sources */,
 				2B9630D02B999001002E853B /* StoryReaderView.swift in Sources */,
 				2B9630D22B999001002E853B /* StoryReaderViewModel.swift in Sources */,
 			);

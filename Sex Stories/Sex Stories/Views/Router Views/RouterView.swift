@@ -37,15 +37,14 @@ struct RouterView: View {
                         Text("Profile View")
                     case .partners:
                         Text("Partners View")
-                    case .account:
-                        Text("Account View")
+                    case .settings:
+                        SettingsView()
                     }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .background {
-                Color.black
-                    .opacity(0.01)
+                scrapper.backgroundColor
                     .ignoresSafeArea()
             }
             .offset(x: showSideBar ? 100 : 0)
@@ -71,6 +70,7 @@ struct RouterView: View {
                 }
             }
             .environmentObject(props)
+            .environmentObject(scrapper)
             .onChange(of: props.isLandscape) { _, _ in
                 showSideBar = false
             }

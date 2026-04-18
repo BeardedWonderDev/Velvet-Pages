@@ -40,12 +40,12 @@ struct StoryReaderView: View {
                             }
                         }
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(viewModel.readerTextColor.opacity(0.72))
                         
                         if !viewModel.story.themes.isEmpty {
                             Text(viewModel.story.themes.joined(separator: " • "))
                                 .font(.footnote)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(viewModel.readerTextColor.opacity(0.72))
                         }
                     }
                     
@@ -70,7 +70,7 @@ struct StoryReaderView: View {
                                     .padding(.vertical, 20)
                                     .background(
                                         RoundedRectangle(cornerRadius: 10)
-                                            .fill(viewModel.readerTextColor.opacity(0.07))
+                                            .fill(viewModel.readerAccentColor.opacity(0.12))
                                     )
                                 
                             case .paragraph(let text):
@@ -101,9 +101,9 @@ struct StoryReaderView: View {
     
     private var readerControls: some View {
         VStack(spacing: 18) {
-            Picker("Theme", selection: $viewModel.readerTheme) {
-                ForEach(StoryReaderTheme.allCases, id: \.self) { theme in
-                    Text(theme.rawValue.capitalized).tag(theme)
+            Picker("Background", selection: $viewModel.readerTheme) {
+                ForEach(StoryReaderTheme.allCases) { theme in
+                    Text(theme.label).tag(theme)
                 }
             }
             .pickerStyle(.segmented)
@@ -128,5 +128,14 @@ struct StoryReaderView: View {
         }
         .padding()
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    private func themeLabel(_ theme: AppTheme) -> String {
+        switch theme {
+        case .classicReadability: return "Classic"
+        case .modernMinimalist: return "Minimal"
+        case .nightMode: return "Night"
+        case .natureInspired: return "Nature"
+        }
     }
 }

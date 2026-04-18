@@ -10,11 +10,13 @@ import Network
 import SwiftSoup
 import SwiftUI
 
-enum AppTheme: String, CaseIterable {
+enum AppTheme: String, CaseIterable, Identifiable {
     case classicReadability
     case modernMinimalist
     case nightMode
     case natureInspired
+
+    var id: String { rawValue }
 
     var colors: (primary: Color, secondary: Color, accent: Color, background: Color) {
         switch self {
@@ -60,6 +62,9 @@ final class ScrapperViewModel: ObservableObject {
 
     private var loadInProgress = false
 
+    @Published var selectedTheme: AppTheme = .natureInspired {
+        didSet { applyTheme(selectedTheme) }
+    }
     @Published var primaryColor: Color
     @Published var secondaryColor: Color
     @Published var accentColor: Color
@@ -76,6 +81,10 @@ final class ScrapperViewModel: ObservableObject {
     }
 
     func changeTheme(to newTheme: AppTheme) {
+        selectedTheme = newTheme
+    }
+
+    private func applyTheme(_ newTheme: AppTheme) {
         self.primaryColor = newTheme.colors.primary
         self.secondaryColor = newTheme.colors.secondary
         self.accentColor = newTheme.colors.accent
