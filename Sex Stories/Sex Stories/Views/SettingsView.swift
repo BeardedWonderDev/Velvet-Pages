@@ -34,7 +34,7 @@ struct SettingsView: View {
                                 .tint(scrapper.accentColor)
                         }
 
-                        Text("Theme and font size apply across the entire app, including the reader.")
+                        Text("Theme, font size, and reading rhythm apply across the entire app, including the reader.")
                             .font(.footnote)
                             .foregroundStyle(scrapper.secondaryColor)
                     }

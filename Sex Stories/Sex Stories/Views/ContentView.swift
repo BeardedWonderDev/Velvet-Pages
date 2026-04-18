@@ -109,7 +109,8 @@ struct SectionView: View {
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.vertical, 16)
         }
         .background(scrapper.backgroundColor.ignoresSafeArea())
         .refreshable {

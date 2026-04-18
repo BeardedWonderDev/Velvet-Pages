@@ -73,6 +73,8 @@ final class ScrapperViewModel: ObservableObject {
 
     @AppStorage("selectedTheme") private var storedTheme: String = AppTheme.paper.rawValue
     @AppStorage("readerFontSize") private var storedFontSize: Double = 18
+    @AppStorage("readerFontFamily") private var storedFontFamily: String = ReaderFontFamily.serif.rawValue
+    @AppStorage("readerLineSpacing") private var storedLineSpacing: Double = 5
 
     @Published var selectedTheme: AppTheme = .paper {
         didSet {
@@ -82,6 +84,12 @@ final class ScrapperViewModel: ObservableObject {
     }
     @Published var fontSize: Double = 18 {
         didSet { storedFontSize = fontSize }
+    }
+    @Published var readerFontFamily: ReaderFontFamily = .serif {
+        didSet { storedFontFamily = readerFontFamily.rawValue }
+    }
+    @Published var readerLineSpacing: Double = 5 {
+        didSet { storedLineSpacing = readerLineSpacing }
     }
 
     @Published var primaryColor: Color
@@ -93,9 +101,13 @@ final class ScrapperViewModel: ObservableObject {
         let defaults = UserDefaults.standard
         let initialTheme = AppTheme(rawValue: defaults.string(forKey: "selectedTheme") ?? AppTheme.paper.rawValue) ?? .paper
         let initialFontSize = defaults.object(forKey: "readerFontSize") as? Double ?? 18
+        let initialFontFamily = ReaderFontFamily(rawValue: defaults.string(forKey: "readerFontFamily") ?? ReaderFontFamily.serif.rawValue) ?? .serif
+        let initialLineSpacing = defaults.object(forKey: "readerLineSpacing") as? Double ?? 5
 
         self.selectedTheme = initialTheme
         self.fontSize = initialFontSize
+        self.readerFontFamily = initialFontFamily
+        self.readerLineSpacing = initialLineSpacing
         self.primaryColor = initialTheme.colors.primary
         self.secondaryColor = initialTheme.colors.secondary
         self.accentColor = initialTheme.colors.accent

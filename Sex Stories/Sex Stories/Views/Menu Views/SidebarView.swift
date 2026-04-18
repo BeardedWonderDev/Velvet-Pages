@@ -12,6 +12,7 @@ struct SidebarView: View {
 
     @Namespace var animation
     @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = 0
+    @SceneStorage("showSideBar") var showSideBar: Bool = false
     @SceneStorage("showSettings") var showSettings: Bool = false
     @EnvironmentObject var scrapper: ScrapperViewModel
 
@@ -45,6 +46,7 @@ struct SidebarView: View {
                         withAnimation(.easeInOut) {
                             showSettings = false
                             selectedSectionIndex = -1
+                            showSideBar.toggle()
                         }
                     }
                 )
@@ -58,6 +60,7 @@ struct SidebarView: View {
                             withAnimation(.easeInOut) {
                                 showSettings = false
                                 selectedSectionIndex = index
+                                showSideBar.toggle()
                             }
                         }
                     )
@@ -72,6 +75,7 @@ struct SidebarView: View {
                     action: {
                         withAnimation(.easeInOut) {
                             showSettings = true
+                            showSideBar.toggle()
                         }
                     }
                 )
