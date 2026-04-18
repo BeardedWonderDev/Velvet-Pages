@@ -8,28 +8,29 @@ import SwiftUI
 struct StoryReaderView: View {
     @StateObject private var viewModel: StoryReaderViewModel
     @EnvironmentObject var scrapper: ScrapperViewModel
-
+    
     init(story: Story) {
         _viewModel = StateObject(wrappedValue: StoryReaderViewModel(story: story))
     }
-
+    
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 28) {
                 if viewModel.isLoading && viewModel.blocks.isEmpty {
-                    ProgressView("Loading story")
+                    ProgressView("Loading full story...")
                         .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 40)
-                } else if let error = viewModel.errorMessage {
-                    Text(error)
-                        .foregroundStyle(.red)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 40)
-                } else {
+                        .padding(.top, 80)
+                }
+                else if let error = viewModel.errorMessage {
+                    Text(error).foregroundStyle(.red).multilineTextAlignment(.center)
+                }
+                else {
+                    // Header
                     VStack(alignment: .leading, spacing: 10) {
                         Text(viewModel.story.title)
                             .font(.title.bold())
-
+                            .foregroundStyle(viewModel.readerTextColor)
+                        
                         HStack {
                             if !viewModel.story.author.isEmpty {
                                 Text("By \(viewModel.story.author)")
@@ -40,40 +41,55 @@ struct StoryReaderView: View {
                         }
                         .font(.caption)
                         .foregroundStyle(.secondary)
-
+                        
                         if !viewModel.story.themes.isEmpty {
                             Text(viewModel.story.themes.joined(separator: " • "))
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                         }
                     }
-
+                    
                     readerControls
-
-                    VStack(alignment: .leading, spacing: 16) {
+                    
+                    // Story Content
+                    VStack(alignment: .leading, spacing: 24) {
                         ForEach(Array(viewModel.blocks.enumerated()), id: \.offset) { _, block in
                             switch block {
                             case .heading(let text):
                                 Text(text)
-                                    .font(.title3.bold())
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                            case .paragraph(let text):
+                                    .font(.title2.bold())
+                                    .foregroundStyle(viewModel.readerTextColor)
+                                    .padding(.top, 8)
+                                
+                            case .chapterTitle(let text):
                                 Text(text)
+                                    .font(.title.bold())
+                                    .multilineTextAlignment(.center)
+                                    .foregroundStyle(viewModel.readerTextColor)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 20)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 10)
+                                            .fill(viewModel.readerTextColor.opacity(0.07))
+                                    )
+                                
+                            case .paragraph(let text):
+                                Text(try! AttributedString(markdown: text))
                                     .font(viewModel.readerFont)
                                     .lineSpacing(viewModel.lineSpacing)
                                     .foregroundStyle(viewModel.readerTextColor)
+                                    .textSelection(.enabled)
                                     .frame(maxWidth: .infinity, alignment: .leading)
-
+                                
                             case .separator:
-                                Divider()
-                                    .opacity(0.5)
+                                Divider().padding(.vertical, 12)
                             }
                         }
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.bottom, 40)
         }
         .background(viewModel.readerBackground.ignoresSafeArea())
         .navigationTitle("Reader")
@@ -82,37 +98,35 @@ struct StoryReaderView: View {
             await viewModel.loadStoryIfNeeded()
         }
     }
-
+    
     private var readerControls: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Picker("Background", selection: $viewModel.readerTheme) {
+        VStack(spacing: 18) {
+            Picker("Theme", selection: $viewModel.readerTheme) {
                 ForEach(StoryReaderTheme.allCases, id: \.self) { theme in
                     Text(theme.rawValue.capitalized).tag(theme)
                 }
             }
             .pickerStyle(.segmented)
-
-            VStack(alignment: .leading) {
+            
+            VStack {
                 HStack {
                     Text("Text Size")
                     Spacer()
-                    Text("\(Int(viewModel.fontSize))")
-                        .foregroundStyle(.secondary)
+                    Text("\(Int(viewModel.fontSize)) pt")
                 }
-                Slider(value: $viewModel.fontSize, in: 14...30, step: 1)
+                Slider(value: $viewModel.fontSize, in: 14...32, step: 1)
             }
-
-            VStack(alignment: .leading) {
+            
+            VStack {
                 HStack {
                     Text("Line Spacing")
                     Spacer()
                     Text(String(format: "%.1f", viewModel.lineSpacing))
-                        .foregroundStyle(.secondary)
                 }
-                Slider(value: $viewModel.lineSpacing, in: 1.0...2.2, step: 0.1)
+                Slider(value: $viewModel.lineSpacing, in: 1.0...2.6, step: 0.1)
             }
         }
         .padding()
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
     }
 }

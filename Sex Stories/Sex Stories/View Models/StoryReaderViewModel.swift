@@ -16,16 +16,18 @@ enum StoryReaderTheme: String, CaseIterable {
 
 enum StoryReaderBlock: Hashable {
     case heading(String)
-    case paragraph(String)
+    case paragraph(String)      // Now supports markdown-style **bold** and *italic*
+    case chapterTitle(String)   // New: Dedicated chapter support
     case separator
 }
 
 final class StoryReaderViewModel: ObservableObject {
+    
     @Published var story: Story
     @Published var blocks: [StoryReaderBlock] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-
+    
     @Published var readerTheme: StoryReaderTheme = .paper {
         didSet { applyTheme() }
     }
@@ -36,29 +38,29 @@ final class StoryReaderViewModel: ObservableObject {
     @Published var readerFont: Font = .system(size: 18, weight: .regular, design: .serif)
     @Published var readerBackground: Color = .white
     @Published var readerTextColor: Color = .primary
-
+    
     private var didLoad = false
-
+    
     init(story: Story) {
         self.story = story
         self.readerFont = .system(size: fontSize, weight: .regular, design: .serif)
         applyTheme()
     }
-
+    
     @MainActor
     func loadStoryIfNeeded() async {
         guard !didLoad else { return }
         didLoad = true
-
+        
         if story.url.isEmpty {
             blocks = fallbackBlocks(from: story.description)
             return
         }
-
+        
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
-
+        
         do {
             let parsed = try await fetchAndParseStory(from: story.url)
             if parsed.isEmpty {
@@ -71,88 +73,114 @@ final class StoryReaderViewModel: ObservableObject {
             blocks = fallbackBlocks(from: story.description)
         }
     }
-
+    
     private func fetchAndParseStory(from urlString: String) async throws -> [StoryReaderBlock] {
         guard let url = URL(string: urlString) else { return [] }
         let (data, _) = try await URLSession.shared.data(from: url)
         let html = String(data: data, encoding: .utf8) ?? ""
         return parseStoryBody(html: html)
     }
+    
+    // MARK: - Enhanced Parser for sexstories.com / xnxx stories
 
     private func parseStoryBody(html: String) -> [StoryReaderBlock] {
         do {
             let doc = try SwiftSoup.parse(html)
-            let selectors = [
-                "article",
-                ".story-content",
-                ".entry-content",
-                ".content",
-                "main"
-            ]
-
+            
+            // Target the exact story content (second .block_panel on sexstories.com)
+            let blockPanels = try doc.select(".block_panel")
+            if blockPanels.size() > 1 {
+                let storyElement = blockPanels.get(1)
+                return parseStoryElement(storyElement)
+            }
+            
+            // Fallbacks
+            let selectors = ["article", ".story-content", ".entry-content", ".content", "main"]
             for selector in selectors {
-                if let element = doc.select(selector).first() {
-                    let structured = parseElement(element)
-                    if !structured.isEmpty { return structured }
+                if let element = try doc.select(selector).first() {
+                    let result = parseStoryElement(element)
+                    if !result.isEmpty { return result }
                 }
             }
-
+            
             if let body = doc.body() {
-                let structured = parseElement(body)
-                if !structured.isEmpty { return structured }
+                return parseStoryElement(body)
             }
         } catch {
-            print("Story parse error: \(error)")
+            print("Parse error: \(error)")
         }
-
         return []
     }
 
-    private func parseElement(_ element: Element) -> [StoryReaderBlock] {
-        var result: [StoryReaderBlock] = []
-
-        let children = element.children()
-        for child in children.array() {
-            let tag = child.tagName().lowercased()
-            let text = child.text().trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !text.isEmpty else { continue }
-
-            switch tag {
-            case "h1", "h2", "h3", "h4", "h5", "h6":
-                result.append(.heading(text))
-            case "p":
-                result.append(.paragraph(text))
-            case "hr":
-                result.append(.separator)
-            case "div", "section", "article", "main":
-                let nested = parseElement(child)
-                if nested.isEmpty {
-                    result.append(.paragraph(text))
-                } else {
-                    result.append(contentsOf: nested)
+    private func parseStoryElement(_ element: Element) -> [StoryReaderBlock] {
+        do {
+            let rawHTML = try element.html()
+            let cleanedText = cleanAndNormalizeHTML(rawHTML)
+            
+            // Split on double newlines → each becomes a proper paragraph
+            let paragraphs = cleanedText
+                .components(separatedBy: "\n\n")
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+            
+            var blocks: [StoryReaderBlock] = []
+            
+            for paragraph in paragraphs {
+                let trimmed = paragraph.trimmingCharacters(in: .whitespacesAndNewlines)
+                
+                // Only very obvious Chapter markers become chapterTitle (still useful)
+                if trimmed.hasPrefix("Chapter ") || trimmed.lowercased().contains("chapter ") {
+                    blocks.append(.chapterTitle(trimmed.replacingOccurrences(of: "**", with: "")))
                 }
-            default:
-                if (try? child.children())?.size() ?? 0 > 0 {
-                    let nested = parseElement(child)
-                    if nested.isEmpty {
-                        result.append(.paragraph(text))
-                    } else {
-                        result.append(contentsOf: nested)
-                    }
-                } else {
-                    result.append(.paragraph(text))
+                // Everything else (including dialogue, quotes, etc.) is a normal paragraph
+                else {
+                    blocks.append(.paragraph(trimmed))
                 }
             }
+            
+            return blocks
+        } catch {
+            print("Element parse error: \(error)")
+            return []
         }
-
-        return collapseAdjacentParagraphs(result)
     }
 
+    private func cleanAndNormalizeHTML(_ html: String) -> String {
+        var text = html
+        
+        // ── Convert ALL <br> tags into proper newlines ──
+        text = text.replacingOccurrences(of: "<br ?/?>", with: "\n", options: .regularExpression)
+        
+        // ── Convert formatting spans to markdown ──
+        text = text.replacingOccurrences(of: #"<span class="italic">(.*?)</span>"#, with: "*$1*", options: .regularExpression)
+        text = text.replacingOccurrences(of: #"<span class="bold">(.*?)</span>"#, with: "**$1**", options: .regularExpression)
+        
+        // ── Fix common HTML entities (quotes, etc.) ──
+        let entities: [String: String] = [
+            "&ldquo;": "“", "&rdquo;": "”",
+            "&lsquo;": "‘", "&rsquo;": "’",
+            "&nbsp;": " ", "&amp;": "&", "&quot;": "\""
+        ]
+        for (key, value) in entities {
+            text = text.replacingOccurrences(of: key, with: value)
+        }
+        
+        // ── Remove any leftover HTML tags ──
+        text = text.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+        
+        // ── Clean up whitespace ──
+        text = text.replacingOccurrences(of: " {2,}", with: " ", options: .regularExpression)
+        text = text.replacingOccurrences(of: "\n{3,}", with: "\n\n\n", options: .regularExpression)
+        
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
     private func collapseAdjacentParagraphs(_ blocks: [StoryReaderBlock]) -> [StoryReaderBlock] {
         var output: [StoryReaderBlock] = []
+        
         for block in blocks {
             if case .paragraph(let newText) = block,
-               case .paragraph(let lastText)? = output.last {
+               case .paragraph(let lastText) = output.last {
                 output.removeLast()
                 output.append(.paragraph(lastText + "\n\n" + newText))
             } else {
@@ -161,17 +189,16 @@ final class StoryReaderViewModel: ObservableObject {
         }
         return output
     }
-
+    
     private func fallbackBlocks(from text: String) -> [StoryReaderBlock] {
         let parts = text
             .components(separatedBy: "\n\n")
-            .flatMap { $0.components(separatedBy: "\n") }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
-
+        
         return parts.map { .paragraph($0) }
     }
-
+    
     private func applyTheme() {
         switch readerTheme {
         case .light:
