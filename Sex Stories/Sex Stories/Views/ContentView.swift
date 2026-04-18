@@ -56,26 +56,32 @@ struct SectionView: View {
     var body: some View {
         ScrollView {
             LazyVStack {
-                ForEach(section.stories, id: \.title) { story in
-                    if story.title != "" {
-                        GroupBox(label: (
-                            Text(story.title)
-                                .font(.title2)
-                        ), content: {
-                            VStack(alignment: .leading) {
-                                Text(story.description)
-                                    .font(.callout)
-                                    .padding(.bottom, 20)
-                                
-                                Text("Themes:")
-                                    .font(.headline)
-                                Text(story.themes.joined(separator: ", "))
-                                    .font(.footnote)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                        })
-                        .frame(alignment: .leading)
-                        .padding(.horizontal, 10)
+                ForEach(section.stories) { story in
+                    if !story.title.isEmpty {
+                        NavigationLink {
+                            StoryReaderView(story: story)
+                                .environmentObject(scrapper)
+                        } label: {
+                            GroupBox(label: (
+                                Text(story.title)
+                                    .font(.title2)
+                            ), content: {
+                                VStack(alignment: .leading) {
+                                    Text(story.description)
+                                        .font(.callout)
+                                        .padding(.bottom, 20)
+
+                                    Text("Themes:")
+                                        .font(.headline)
+                                    Text(story.themes.joined(separator: ", "))
+                                        .font(.footnote)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                }
+                            })
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 10)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
             }

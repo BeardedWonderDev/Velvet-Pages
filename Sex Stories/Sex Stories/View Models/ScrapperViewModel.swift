@@ -30,8 +30,8 @@ enum AppTheme: String, CaseIterable {
     }
 }
 
-
-struct Story: Hashable {
+struct Story: Hashable, Identifiable {
+    var id: String { url.isEmpty ? title : url }
     var title: String
     var author: String
     var description: String
@@ -39,15 +39,15 @@ struct Story: Hashable {
     var timesRead: String
     var postedDate: String
     var themes: [String]
+    var url: String
 }
 
-struct Section {
+struct Section: Hashable {
     var title: String
     var stories: [Story]
 }
 
-
-class ScrapperViewModel: Observable, ObservableObject {
+final class ScrapperViewModel: ObservableObject {
     private let monitor: NWPathMonitor
     private let queue = DispatchQueue.global()
     private let storiesURL = "https://sexstories.com"
@@ -57,34 +57,31 @@ class ScrapperViewModel: Observable, ObservableObject {
     @Published var isLoading: Bool = false
     @Published var hasLoaded: Bool = false
     @Published var loadError: String?
-    
+
     private var loadInProgress = false
-    
+
     @Published var primaryColor: Color
-
     @Published var secondaryColor: Color
-
     @Published var accentColor: Color
-
     @Published var backgroundColor: Color
-    
+
     init() {
         self.primaryColor = AppTheme.natureInspired.colors.primary
         self.secondaryColor = AppTheme.natureInspired.colors.secondary
         self.accentColor = AppTheme.natureInspired.colors.accent
         self.backgroundColor = AppTheme.natureInspired.colors.background
-        
+
         monitor = NWPathMonitor()
         startMonitoring()
     }
-    
+
     func changeTheme(to newTheme: AppTheme) {
         self.primaryColor = newTheme.colors.primary
         self.secondaryColor = newTheme.colors.secondary
         self.accentColor = newTheme.colors.accent
         self.backgroundColor = newTheme.colors.background
     }
-    
+
     func fetchAndParseHTML(from urlString: String) async -> [Section] {
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
@@ -105,7 +102,7 @@ class ScrapperViewModel: Observable, ObservableObject {
             return []
         }
     }
-    
+
     @MainActor
     func loadSectionsIfNeeded(forceRefresh: Bool = false) async {
         guard isConnected else {
@@ -151,10 +148,10 @@ class ScrapperViewModel: Observable, ObservableObject {
 
         return []
     }
-    
+
     func removeHtmlEntities(in text: String) -> String {
         var cleanedText = text
-        let htmlEntities = ["&laquo;", "&raquo;", "«", "»"] // List of entities to remove
+        let htmlEntities = ["&laquo;", "&raquo;", "«", "»"]
 
         for entity in htmlEntities {
             cleanedText = cleanedText.replacingOccurrences(of: entity, with: "")
@@ -163,24 +160,22 @@ class ScrapperViewModel: Observable, ObservableObject {
         return cleanedText
     }
 
-    
     func trimmedTitle(_ title: String) -> String {
-        var words = title.split(separator: " ").map(String.init)
-
-        // Check if the second word should be included
-        if words.count > 1 && !words[1].starts(with: "-") && words[1] != "Sex" {
+        let words = title.split(separator: " ").map(String.init)
+        guard words.count > 1 else { return title }
+        if !words[1].starts(with: "-") && words[1] != "Sex" {
             return words[0] + " " + words[1]
         } else {
             return words[0]
         }
     }
-    
+
     func startMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
                 self?.isConnected = path.status == .satisfied
                 print("Network path status: \(path.status)")
-                print("Is Expensive: \(path.isExpensive)") // Indicates a cellular or constrained connection
+                print("Is Expensive: \(path.isExpensive)")
                 if path.status == .satisfied {
                     Task {
                         await self?.loadSectionsIfNeeded()
@@ -192,11 +187,16 @@ class ScrapperViewModel: Observable, ObservableObject {
         monitor.start(queue: queue)
     }
 
-
     func stopMonitoring() {
         monitor.cancel()
     }
 
+    private func normalizeURL(_ href: String) -> String {
+        guard !href.isEmpty else { return "" }
+        if href.hasPrefix("http") { return href }
+        if href.hasPrefix("/") { return storiesURL + href }
+        return storiesURL + "/" + href
+    }
 
     private func parseSectionsWithStories(html: String) -> [Section] {
         var sections = [Section]()
@@ -220,17 +220,19 @@ class ScrapperViewModel: Observable, ObservableObject {
                 }
 
                 for item in items {
-                    let title = try item.select("h4 a").first()?.text() ?? ""
+                    let titleLink = try item.select("h4 a").first()
+                    let title = try titleLink?.text() ?? ""
                     let author = try item.select("h4 a").last()?.text() ?? ""
+                    let storyURL = normalizeURL(try titleLink?.attr("href") ?? "")
                     let rawDescription = try item.select("p").text()
                     let description = removeHtmlEntities(in: rawDescription)
                     let strongElements = try item.select("strong").array()
                     let rating = strongElements.count > 0 ? try strongElements[0].text() : ""
                     let timesRead = strongElements.count > 1 ? try strongElements[1].text() : ""
                     let postedDate = strongElements.count > 2 ? try strongElements[2].text() : ""
-                    let categories = try item.ownText().components(separatedBy: ",")
-                    
-                    let story = Story(title: title, author: author, description: description, rating: rating, timesRead: timesRead, postedDate: postedDate, themes: categories)
+                    let categories = item.ownText().components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+
+                    let story = Story(title: title, author: author, description: description, rating: rating, timesRead: timesRead, postedDate: postedDate, themes: categories, url: storyURL)
                     stories.append(story)
                 }
 
