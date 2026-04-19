@@ -121,10 +121,10 @@
 		2B9630B72B145008002E853B /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				BBFF7F8A2F9554A200FAB220 /* BrowsePageView.swift */,
-				BBFF7F882F95460700FAB220 /* FilterSheetView.swift */,
 				2B9630BB2B145073002E853B /* Router Views */,
 				2B9630BA2B14506D002E853B /* Menu Views */,
+				BBFF7F8A2F9554A200FAB220 /* BrowsePageView.swift */,
+				BBFF7F882F95460700FAB220 /* FilterSheetView.swift */,
 				2B9630B82B14505C002E853B /* ResponsiveView.swift */,
 				2B9630A42B143F14002E853B /* ContentView.swift */,
 				2B9630D12B999001002E853B /* StoryReaderView.swift */,

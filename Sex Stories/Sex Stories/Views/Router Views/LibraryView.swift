@@ -61,6 +61,8 @@ struct LibraryView: View {
                                 Button {
                                     showSettings = false
                                     selectedSectionIndex = index
+                                    scrapper.activeBrowsePage = nil
+                                    scrapper.storyFilterState = StoryFilterState()
                                 } label: {
                                     browseCard(section: section, index: index)
                                 }

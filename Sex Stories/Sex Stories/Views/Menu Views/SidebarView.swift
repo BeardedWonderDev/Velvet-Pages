@@ -64,6 +64,8 @@ struct SidebarView: View {
                         withAnimation(.easeInOut) {
                             showSettings = false
                             selectedSectionIndex = -1
+                            scrapper.activeBrowsePage = nil
+                            scrapper.storyFilterState = StoryFilterState()
                             showSideBar.toggle()
                         }
                     }
@@ -75,11 +77,13 @@ struct SidebarView: View {
                     isExpanded: $showGenresMenu,
                     items: genreItems,
                     onSelect: { item in
-                        Task { await scrapper.loadBrowsePage(title: item.name, urlString: item.url) }
+                        Task {
+                            await scrapper.loadBrowsePage(title: item.name, urlString: item.url)
+                        }
                         showSettings = false
-                        showGenresMenu.toggle()
+                        showGenresMenu = false
                         selectedSectionIndex = -1
-                        showSideBar.toggle()
+                        showSideBar = false
                     }
                 )
 

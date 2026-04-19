@@ -22,7 +22,7 @@ struct BrowsePageView: View {
                     header
 
                     LazyVStack(spacing: 12) {
-                        ForEach(page.stories) { story in
+                        ForEach(filteredStories(page.stories)) { story in
                             if !story.title.isEmpty {
                                 NavigationLink {
                                     StoryReaderView(story: story)
@@ -61,6 +61,29 @@ struct BrowsePageView: View {
                 lastRootURL = page.rootURL
                 proxy.scrollTo(scrollToTopToken, anchor: .top)
             }
+        }
+    }
+
+    private func filteredStories(_ stories: [Story]) -> [Story] {
+        stories.filter { story in
+            if !scrapper.storyFilterState.selectedCategories.isEmpty {
+                let storySet = Set(story.themes.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+                if storySet.isDisjoint(with: scrapper.storyFilterState.selectedCategories) {
+                    return false
+                }
+            }
+
+            if !scrapper.storyFilterState.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                let search = scrapper.storyFilterState.searchText.lowercased()
+                let haystack = [story.title, story.author, story.description, story.themes.joined(separator: " ")]
+                    .joined(separator: " ")
+                    .lowercased()
+                if !haystack.contains(search) {
+                    return false
+                }
+            }
+
+            return true
         }
     }
 

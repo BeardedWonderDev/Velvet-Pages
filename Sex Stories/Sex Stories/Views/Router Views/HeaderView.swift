@@ -18,6 +18,9 @@ struct HeaderView: View {
 
     private var headerTitle: String {
         if showSettings { return "Settings" }
+        if let browseTitle = scrapper.activeBrowsePage?.title, !browseTitle.isEmpty {
+            return browseTitle
+        }
         if selectedSectionIndex < 0 { return "Library" }
         guard scrapper.sections.indices.contains(selectedSectionIndex) else { return "Stories" }
         return scrapper.trimmedTitle(scrapper.sections[selectedSectionIndex].title)
@@ -25,6 +28,7 @@ struct HeaderView: View {
 
     private var headerSubtitle: String {
         if showSettings { return "Preferences" }
+        if scrapper.activeBrowsePage != nil { return "Browse" }
         if selectedSectionIndex < 0 { return "Pick up, save, or browse stories." }
         return "Stories"
     }

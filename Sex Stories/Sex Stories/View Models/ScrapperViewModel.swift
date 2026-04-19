@@ -558,10 +558,20 @@ final class ScrapperViewModel: ObservableObject {
     }
 
     var allKnownCategories: [StoryCategory] {
-        let categories = sections.flatMap { $0.stories.flatMap { $0.themes } }
+        let sourceStories: [Story]
+        if let browsePage = activeBrowsePage {
+            sourceStories = browsePage.stories
+        } else {
+            sourceStories = sections.flatMap { $0.stories }
+        }
+
+        let categories = sourceStories
+            .flatMap { $0.themes }
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
-        return Array(Set(categories.map(StoryCategory.init(name:)))).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+
+        return Array(Set(categories.map(StoryCategory.init(name:))))
+            .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
     func filteredStories(in section: Section) -> [Story] {
