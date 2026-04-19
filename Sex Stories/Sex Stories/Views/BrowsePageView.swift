@@ -8,39 +8,54 @@ import SwiftUI
 struct BrowsePageView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel
     let page: BrowsePage
+    @State private var scrollToTopToken = UUID()
 
     var body: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 18) {
-                header
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 18) {
+                    Color.clear
+                        .frame(height: 1)
+                        .id(scrollToTopToken)
 
-                LazyVStack(spacing: 12) {
-                    ForEach(page.stories) { story in
-                        if !story.title.isEmpty {
-                            NavigationLink {
-                                StoryReaderView(story: story)
-                                    .environmentObject(scrapper)
-                            } label: {
-                                storyCard(story: story)
-                            }
-                            .buttonStyle(.plain)
-                            .onAppear {
-                                if story.id == page.stories.last?.id {
-                                    Task { await scrapper.loadNextBrowsePageIfNeeded() }
+                    header
+
+                    LazyVStack(spacing: 12) {
+                        ForEach(page.stories) { story in
+                            if !story.title.isEmpty {
+                                NavigationLink {
+                                    StoryReaderView(story: story)
+                                        .environmentObject(scrapper)
+                                } label: {
+                                    storyCard(story: story)
+                                }
+                                .buttonStyle(.plain)
+                                .onAppear {
+                                    if story.id == page.stories.last?.id {
+                                        Task { await scrapper.loadNextBrowsePageIfNeeded() }
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                .padding(.horizontal)
+                .padding(.vertical, 16)
             }
-            .padding(.horizontal)
-            .padding(.vertical, 16)
-        }
-        .id(page.currentURL)
-        .background(scrapper.backgroundColor.ignoresSafeArea())
-        .refreshable {
-            if let browse = scrapper.activeBrowsePage {
-                await scrapper.loadBrowsePage(title: browse.title, urlString: browse.currentURL)
+            .background(scrapper.backgroundColor.ignoresSafeArea())
+            .refreshable {
+                if let browse = scrapper.activeBrowsePage {
+                    await scrapper.loadBrowsePage(title: browse.title, urlString: browse.currentURL)
+                }
+            }
+            .onChange(of: page.currentURL) { _, _ in
+                scrollToTopToken = UUID()
+                withAnimation(.easeInOut) {
+                    proxy.scrollTo(scrollToTopToken, anchor: .top)
+                }
+            }
+            .onAppear {
+                proxy.scrollTo(scrollToTopToken, anchor: .top)
             }
         }
     }

@@ -26,7 +26,6 @@ struct ContentView: View {
                 } else if let browsePage = scrapper.activeBrowsePage {
                     BrowsePageView(page: browsePage)
                         .environmentObject(scrapper)
-                        .id(browsePage.currentURL)
                 } else if let section {
                     SectionView(section: section)
                         .environmentObject(scrapper)
