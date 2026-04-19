@@ -34,6 +34,8 @@ struct RouterView: View {
 
                     if showSettings {
                         SettingsView()
+                    } else if scrapper.activeBrowsePage != nil {
+                        ContentView(section: nil)
                     } else if selectedSectionIndex < 0 {
                         LibraryView()
                     } else {

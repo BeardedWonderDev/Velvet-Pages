@@ -28,6 +28,7 @@
 		BBFF7F842F9494CC00FAB220 /* StoryCacheModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F812F9494CC00FAB220 /* StoryCacheModels.swift */; };
 		BBFF7F852F9494CC00FAB220 /* ReaderPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F802F9494CC00FAB220 /* ReaderPreferences.swift */; };
 		BBFF7F892F95460700FAB220 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F882F95460700FAB220 /* FilterSheetView.swift */; };
+		BBFF7F8B2F9554A200FAB220 /* BrowsePageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F8A2F9554A200FAB220 /* BrowsePageView.swift */; };
 		D1A7C6EB2F9B000100000001 /* StoryCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */; };
 /* End PBXBuildFile section */
 
@@ -54,6 +55,7 @@
 		BBFF7F802F9494CC00FAB220 /* ReaderPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPreferences.swift; sourceTree = "<group>"; };
 		BBFF7F812F9494CC00FAB220 /* StoryCacheModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheModels.swift; sourceTree = "<group>"; };
 		BBFF7F882F95460700FAB220 /* FilterSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSheetView.swift; sourceTree = "<group>"; };
+		BBFF7F8A2F9554A200FAB220 /* BrowsePageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowsePageView.swift; sourceTree = "<group>"; };
 		D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -122,6 +124,7 @@
 		2B9630B72B145008002E853B /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				BBFF7F8A2F9554A200FAB220 /* BrowsePageView.swift */,
 				BBFF7F882F95460700FAB220 /* FilterSheetView.swift */,
 				2B9630BB2B145073002E853B /* Router Views */,
 				2B9630BA2B14506D002E853B /* Menu Views */,
@@ -263,6 +266,7 @@
 				2B9630D02B999001002E853B /* StoryReaderView.swift in Sources */,
 				BBFF7F7E2F937A2500FAB220 /* ReaderBookmarkStore.swift in Sources */,
 				2B9630D22B999001002E853B /* StoryReaderViewModel.swift in Sources */,
+				BBFF7F8B2F9554A200FAB220 /* BrowsePageView.swift in Sources */,
 				BBFF7F772F936FD500FAB220 /* LibraryView.swift in Sources */,
 				D1A7C6EB2F9B000100000001 /* StoryCacheStore.swift in Sources */,
 			);

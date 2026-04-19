@@ -16,6 +16,8 @@ struct SidebarView: View {
     @SceneStorage("showSettings") var showSettings: Bool = false
     @SceneStorage("showGenresMenu") var showGenresMenu: Bool = false
     @SceneStorage("showCategoriesMenu") var showCategoriesMenu: Bool = false
+    @SceneStorage("selectedBrowseTitle") var selectedBrowseTitle: String = ""
+    @SceneStorage("selectedBrowseURL") var selectedBrowseURL: String = ""
     @EnvironmentObject var scrapper: ScrapperViewModel
 
     private var sectionItems: [Section] {
@@ -71,14 +73,26 @@ struct SidebarView: View {
                     title: "Genres",
                     systemImage: "tag.fill",
                     isExpanded: $showGenresMenu,
-                    items: genreItems
+                    items: genreItems,
+                    onSelect: { item in
+                        Task { await scrapper.loadBrowsePage(title: item.name, urlString: item.url) }
+                        showSettings = false
+                        selectedSectionIndex = -1
+                        showSideBar.toggle()
+                    }
                 )
 
                 collapsibleMenuSection(
                     title: "Categories",
                     systemImage: "square.grid.2x2.fill",
                     isExpanded: $showCategoriesMenu,
-                    items: categoryItems
+                    items: categoryItems,
+                    onSelect: { item in
+                        Task { await scrapper.loadBrowsePage(title: item.name, urlString: item.url) }
+                        showSettings = false
+                        selectedSectionIndex = -1
+                        showSideBar.toggle()
+                    }
                 )
 
                 ForEach(Array(sectionItems.enumerated()), id: \.offset) { index, section in
@@ -172,7 +186,7 @@ struct SidebarView: View {
     }
 
     @ViewBuilder
-    private func collapsibleMenuSection(title: String, systemImage: String, isExpanded: Binding<Bool>, items: [MenuItem]) -> some View {
+    private func collapsibleMenuSection(title: String, systemImage: String, isExpanded: Binding<Bool>, items: [MenuItem], onSelect: @escaping (MenuItem) -> Void) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Button {
                 withAnimation(.easeInOut) {
@@ -209,8 +223,13 @@ struct SidebarView: View {
             if isExpanded.wrappedValue {
                 VStack(alignment: .leading, spacing: 6) {
                     ForEach(items) { item in
-                        sidebarSubItem(title: item.name, count: item.count)
-                            .padding(.leading, 16)
+                        Button {
+                            onSelect(item)
+                        } label: {
+                            sidebarSubItem(title: item.name, count: item.count)
+                                .padding(.leading, 16)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))

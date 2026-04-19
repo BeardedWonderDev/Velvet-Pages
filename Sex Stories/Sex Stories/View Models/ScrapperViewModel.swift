@@ -3,7 +3,7 @@
 //  Sex Stories
 //
 //  Created by BoiseITGuru on 11/26/23.
-//  Updated: April 2026 - Robust parser + Genres/Themes menu support
+//  Updated: April 2026 - Robust parser + Genres/Themes menu + Category Page support
 //
 
 import Foundation
@@ -65,6 +65,22 @@ struct MenuSection: Hashable, Identifiable {
     var items: [MenuItem]
 }
 
+struct CategoryPage: Hashable {
+    var title: String
+    var stories: [Story]
+    var currentURL: String
+    var paginationURLs: [String]   // Full URLs for all pages
+    var currentPage: Int = 1
+}
+
+struct BrowsePage: Hashable {
+    var title: String
+    var stories: [Story]
+    var currentURL: String
+    var paginationURLs: [String]
+    var currentPage: Int = 1
+}
+
 struct StoryFilterState: Hashable {
     var selectedCategories: Set<String> = []
     var showOnlyFavorites: Bool = false
@@ -84,13 +100,15 @@ final class ScrapperViewModel: ObservableObject {
 
     @Published var isConnected: Bool = false
     @Published var sections: [Section] = []           // Homepage story sections
-    @Published var menuSections: [MenuSection] = []   // NEW: Genres & Themes
+    @Published var menuSections: [MenuSection] = []   // Genres & Themes
+    @Published var activeBrowsePage: BrowsePage?
     @Published var isLoading: Bool = false
     @Published var hasLoaded: Bool = false
     @Published var loadError: String?
     @Published var storyFilterState = StoryFilterState()
 
     private var loadInProgress = false
+    private var pageCache: [String: BrowsePage] = [:]
 
     @AppStorage("selectedTheme") private var storedTheme: String = AppTheme.paper.rawValue
     @AppStorage("readerFontSize") private var storedFontSize: Double = 18
@@ -185,6 +203,65 @@ final class ScrapperViewModel: ObservableObject {
         hasLoaded = true
     }
 
+    // MARK: - New: Fetch Genre/Theme/Category Page
+
+    func fetchCategoryPage(urlString: String) async -> CategoryPage? {
+        guard let url = URL(string: urlString) else { return nil }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let html = String(data: data, encoding: .utf8) ?? ""
+            return parseCategoryPage(html: html, currentURL: urlString)
+        } catch {
+            print("Failed to fetch category page \(urlString): \(error)")
+            return nil
+        }
+    }
+
+    @MainActor
+    func loadBrowsePage(title: String, urlString: String) async {
+        if let cached = pageCache[urlString] {
+            activeBrowsePage = cached
+            return
+        }
+
+        guard let page = await fetchCategoryPage(urlString: urlString) else {
+            loadError = "Unable to load \(title)."
+            return
+        }
+
+        let browsePage = BrowsePage(
+            title: title.isEmpty ? page.title : title,
+            stories: page.stories,
+            currentURL: page.currentURL,
+            paginationURLs: page.paginationURLs,
+            currentPage: page.currentPage
+        )
+        pageCache[urlString] = browsePage
+        activeBrowsePage = browsePage
+    }
+
+    @MainActor
+    func loadNextBrowsePageIfNeeded() async {
+        guard var current = activeBrowsePage else { return }
+        guard current.currentPage < current.paginationURLs.count else { return }
+
+        let nextURL = current.paginationURLs[current.currentPage]
+        guard !nextURL.isEmpty else { return }
+        guard let nextPage = await fetchCategoryPage(urlString: nextURL) else { return }
+
+        current.stories.append(contentsOf: nextPage.stories)
+        current.currentURL = nextPage.currentURL
+        current.currentPage += 1
+        if current.paginationURLs.isEmpty {
+            current.paginationURLs = nextPage.paginationURLs
+        }
+
+        pageCache[current.currentURL] = current
+        activeBrowsePage = current
+    }
+
+    // MARK: - Parsers
+
     func fetchAndParseHTML(from urlString: String) async -> [Section] {
         guard let url = URL(string: urlString) else { return [] }
         do {
@@ -197,19 +274,72 @@ final class ScrapperViewModel: ObservableObject {
         }
     }
 
-    private func parseMenuSections(from urlString: String) async -> [MenuSection] {
-        guard let url = URL(string: urlString) else { return [] }
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let html = String(data: data, encoding: .utf8) ?? ""
-            return parseMenuFromHTML(html: html)
-        } catch {
-            print("Menu fetch failed: \(error)")
-            return []
-        }
+    private func parseCategoryPage(html: String, currentURL: String) -> CategoryPage {
+        let (title, stories) = parseStoryList(html: html)
+        let paginationURLs = extractPaginationURLs(html: html)
+        let currentPage = extractCurrentPage(from: currentURL)
+
+        return CategoryPage(
+            title: title,
+            stories: stories,
+            currentURL: currentURL,
+            paginationURLs: paginationURLs,
+            currentPage: currentPage
+        )
     }
 
-    // MARK: - Parsers
+    // Reusable core parser for any story list page
+    private func parseStoryList(html: String) -> (title: String, stories: [Story]) {
+        var stories: [Story] = []
+        var pageTitle = "Unknown"
+
+        do {
+            let doc = try SwiftSoup.parse(html)
+
+            if let h3 = try doc.select("h3.notice").first() {
+                pageTitle = try h3.text().trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+
+            let items = try doc.select("ul.stories_list li")
+
+            for item in items {
+                if try item.select("a").first()?.text().lowercased().contains("more") == true {
+                    continue
+                }
+
+                let titleLink = try item.select("h4 a").first()
+                let titleRaw = try titleLink?.text() ?? ""
+                let title = trimmedTitle(titleRaw)
+                let storyURL = normalizeURL(try titleLink?.attr("href") ?? "")
+
+                let author = try item.select("h4 a").last()?.text() ?? "Unknown"
+                let description = removeHtmlEntities(in: try item.select("p").text())
+
+                let strongs = try item.select("strong").array()
+                let rating = strongs.count > 0 ? try strongs[0].text() : ""
+                let timesRead = strongs.count > 1 ? try strongs[1].text() : ""
+                let postedDate = strongs.count > 2 ? try strongs[2].text() : ""
+
+                let themes = extractCategories(from: item)
+
+                let story = Story(
+                    title: title,
+                    author: author,
+                    description: description,
+                    rating: rating,
+                    timesRead: timesRead,
+                    postedDate: postedDate,
+                    themes: themes,
+                    url: storyURL
+                )
+                stories.append(story)
+            }
+        } catch {
+            print("Error in parseStoryList: \(error)")
+        }
+
+        return (pageTitle, stories)
+    }
 
     private func parseSectionsWithStories(html: String) -> [Section] {
         var sections: [Section] = []
@@ -238,18 +368,14 @@ final class ScrapperViewModel: ObservableObject {
                     let title = trimmedTitle(titleRaw)
                     let storyURL = normalizeURL(try titleLink?.attr("href") ?? "")
                     
-                    let authorLink = try item.select("h4 a").last()
-                    let author = try authorLink?.text() ?? "Unknown"
-                    
-                    let descriptionRaw = try item.select("p").text()
-                    let description = removeHtmlEntities(in: descriptionRaw)
+                    let author = try item.select("h4 a").last()?.text() ?? "Unknown"
+                    let description = removeHtmlEntities(in: try item.select("p").text())
                     
                     let strongs = try item.select("strong").array()
                     let rating = strongs.count > 0 ? try strongs[0].text() : ""
                     let timesRead = strongs.count > 1 ? try strongs[1].text() : ""
                     let postedDate = strongs.count > 2 ? try strongs[2].text() : ""
                     
-                    // Clean category extraction
                     let categories = extractCategories(from: item)
                     
                     let story = Story(
@@ -278,8 +404,8 @@ final class ScrapperViewModel: ObservableObject {
     }
 
     private func parseMenuFromHTML(html: String) -> [MenuSection] {
+        // (Your existing menu parser - unchanged)
         var menuSections: [MenuSection] = []
-        
         do {
             let doc = try SwiftSoup.parse(html)
             let menuDiv = try doc.select("div#menu").first()
@@ -291,7 +417,7 @@ final class ScrapperViewModel: ObservableObject {
                 let sectionTitle = try heading.text().trimmingCharacters(in: .whitespacesAndNewlines)
                 guard sectionTitle == "Genres" || sectionTitle == "Themes" else { continue }
                 
-                guard let ul = try heading.nextElementSibling(), try ul.tagName() == "ul" else { continue }
+                guard let ul = try heading.nextElementSibling(), ul.tagName() == "ul" else { continue }
                 
                 let listItems = try ul.select("li")
                 var menuItems: [MenuItem] = []
@@ -324,7 +450,7 @@ final class ScrapperViewModel: ObservableObject {
     }
 
     private func extractCategories(from item: Element) -> [String] {
-        guard let lastText = try? item.textNodes().last?.text() else { return [] }
+        guard let lastText = item.textNodes().last?.text() else { return [] }
         
         return lastText
             .components(separatedBy: ",")
@@ -338,6 +464,29 @@ final class ScrapperViewModel: ObservableObject {
                        !lower.contains("times") &&
                        !lower.contains("ago")
             }
+    }
+
+    private func extractPaginationURLs(html: String) -> [String] {
+        var urls: [String] = []
+        do {
+            let doc = try SwiftSoup.parse(html)
+            let links = try doc.select("div.pager a.pagination")
+            for link in links {
+                if let href = try? link.attr("href"), !href.isEmpty {
+                    urls.append(normalizeURL(href))
+                }
+            }
+        } catch {}
+        return Array(Set(urls)).sorted()
+    }
+
+    private func extractCurrentPage(from url: String) -> Int {
+        if let range = url.range(of: "/p-(\\d+)", options: .regularExpression),
+           let numStr = url[range].split(separator: "-").last,
+           let num = Int(numStr) {
+            return num
+        }
+        return 1
     }
 
     // MARK: - Helpers
@@ -376,7 +525,7 @@ final class ScrapperViewModel: ObservableObject {
         return storiesURL + "/" + href
     }
 
-    // MARK: - Network Monitoring
+    // MARK: - Network & Filtering (unchanged)
 
     func startMonitoring() {
         monitor.pathUpdateHandler = { [weak self] path in
@@ -394,7 +543,17 @@ final class ScrapperViewModel: ObservableObject {
         monitor.cancel()
     }
 
-    // MARK: - Filtering
+    private func parseMenuSections(from urlString: String) async -> [MenuSection] {
+        guard let url = URL(string: urlString) else { return [] }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let html = String(data: data, encoding: .utf8) ?? ""
+            return parseMenuFromHTML(html: html)
+        } catch {
+            print("Menu fetch failed: \(error)")
+            return []
+        }
+    }
 
     var allKnownCategories: [StoryCategory] {
         let categories = sections.flatMap { $0.stories.flatMap { $0.themes } }
