@@ -381,11 +381,6 @@ private struct ReaderSettingsSheet: View {
                         }
                     }
                 }
-
-                themedCard(title: "Reading") {
-                    Text("Progress, favorites, and library sync are handled from the library now.")
-                        .foregroundStyle(scrapper.secondaryColor)
-                }
             }
             .padding()
         }
@@ -394,17 +389,18 @@ private struct ReaderSettingsSheet: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline) {
                 Text("Reader Settings")
-                    .font(.largeTitle.bold())
+                    .font(.title3.bold())
                     .foregroundStyle(scrapper.primaryColor)
                 Spacer()
                 Button("Done") { dismiss() }
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(scrapper.accentColor)
             }
             Text("Adjust appearance and reading preferences.")
-                .font(.callout)
+                .font(.footnote)
                 .foregroundStyle(scrapper.secondaryColor)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
