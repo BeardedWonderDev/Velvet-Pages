@@ -77,6 +77,7 @@ struct BrowsePage: Hashable {
     var title: String
     var stories: [Story]
     var currentURL: String
+    var rootURL: String
     var paginationURLs: [String]
     var currentPage: Int = 1
 }
@@ -233,6 +234,7 @@ final class ScrapperViewModel: ObservableObject {
             title: title.isEmpty ? page.title : title,
             stories: page.stories,
             currentURL: page.currentURL,
+            rootURL: urlString,
             paginationURLs: page.paginationURLs,
             currentPage: page.currentPage
         )

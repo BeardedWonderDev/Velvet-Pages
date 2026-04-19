@@ -9,6 +9,7 @@ struct BrowsePageView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel
     let page: BrowsePage
     @State private var scrollToTopToken = UUID()
+    @State private var lastRootURL: String = ""
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -48,13 +49,16 @@ struct BrowsePageView: View {
                     await scrapper.loadBrowsePage(title: browse.title, urlString: browse.currentURL)
                 }
             }
-            .onChange(of: page.currentURL) { _, _ in
+            .onChange(of: page.rootURL) { _, newValue in
+                guard newValue != lastRootURL else { return }
+                lastRootURL = newValue
                 scrollToTopToken = UUID()
-                withAnimation(.easeInOut) {
+                DispatchQueue.main.async {
                     proxy.scrollTo(scrollToTopToken, anchor: .top)
                 }
             }
             .onAppear {
+                lastRootURL = page.rootURL
                 proxy.scrollTo(scrollToTopToken, anchor: .top)
             }
         }
