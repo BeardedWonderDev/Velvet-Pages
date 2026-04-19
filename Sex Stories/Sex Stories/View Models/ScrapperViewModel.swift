@@ -3,6 +3,7 @@
 //  Sex Stories
 //
 //  Created by BoiseITGuru on 11/26/23.
+//  Updated: April 2026 - More robust parser
 //
 
 import Foundation
@@ -199,7 +200,6 @@ final class ScrapperViewModel: ObservableObject {
                 try? await Task.sleep(nanoseconds: 350_000_000)
             }
         }
-
         return []
     }
 
@@ -228,32 +228,42 @@ final class ScrapperViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Improved Helpers
+
     func removeHtmlEntities(in text: String) -> String {
-        var cleanedText = text
-        let htmlEntities = ["&laquo;", "&raquo;", "«", "»"]
-
-        for entity in htmlEntities {
-            cleanedText = cleanedText.replacingOccurrences(of: entity, with: "")
+        var cleaned = text
+        let replacements = [
+            "&laquo;": "",
+            "&raquo;": "",
+            "«": "",
+            "»": "",
+            "&hellip;": "...",
+            "&ndash;": "-",
+            "&mdash;": "-",
+            "&amp;": "&",
+            "&#039;": "'",
+            "&quot;": "\""
+        ]
+        
+        for (entity, replacement) in replacements {
+            cleaned = cleaned.replacingOccurrences(of: entity, with: replacement)
         }
-
-        return cleanedText
+        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func trimmedTitle(_ title: String) -> String {
         var cleaned = title.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // Remove "Sex Stories" along with any surrounding dashes and extra spaces
         cleaned = cleaned.replacingOccurrences(
             of: #"\s*[-–—]?\s*Sex\s*Stories\s*"#,
             with: " ",
             options: .regularExpression
         )
         
-        // Clean up any remaining artifacts (multiple spaces, trailing/leading dashes)
         cleaned = cleaned
-            .replacingOccurrences(of: " {2,}", with: " ", options: .regularExpression)  // collapse multiple spaces
+            .replacingOccurrences(of: " {2,}", with: " ", options: .regularExpression)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-            .trimmingCharacters(in: CharacterSet(charactersIn: "-–— "))                 // remove leftover dashes/spaces
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-–— "))
         
         return cleaned.isEmpty ? title : cleaned
     }
@@ -262,8 +272,6 @@ final class ScrapperViewModel: ObservableObject {
         monitor.pathUpdateHandler = { [weak self] path in
             DispatchQueue.main.async {
                 self?.isConnected = path.status == .satisfied
-                print("Network path status: \(path.status)")
-                print("Is Expensive: \(path.isExpensive)")
                 if path.status == .satisfied {
                     Task {
                         await self?.loadSectionsIfNeeded()
@@ -271,7 +279,6 @@ final class ScrapperViewModel: ObservableObject {
                 }
             }
         }
-
         monitor.start(queue: queue)
     }
 
@@ -286,51 +293,89 @@ final class ScrapperViewModel: ObservableObject {
         return storiesURL + "/" + href
     }
 
+    // MARK: - Updated Robust Parser (April 2026)
+
     private func parseSectionsWithStories(html: String) -> [Section] {
         var sections = [Section]()
-
+        
         do {
             let doc = try SwiftSoup.parse(html)
             let sectionHeaders = try doc.select("h3.notice")
-
+            
             guard !sectionHeaders.isEmpty else {
-                print("Parse warning: no section headers found (selector: h3.notice)")
+                print("Parse warning: No h3.notice headers found")
                 return []
             }
-
+            
             for header in sectionHeaders {
-                let sectionTitle = try header.text()
-                var stories = [Story]()
-
-                let items = try header.nextElementSibling()?.select("li") ?? Elements()
-                if items.isEmpty {
-                    print("Parse warning: section '\(sectionTitle)' contained no story items.")
+                let sectionTitle = try header.text().trimmingCharacters(in: .whitespacesAndNewlines)
+                var stories: [Story] = []
+                
+                // Get the stories list
+                guard let storiesList = try header.nextElementSibling()?.select("ul.stories_list").first() else {
+                    print("Parse warning: No stories_list ul found for section '\(sectionTitle)'")
+                    continue
                 }
-
+                
+                let items = try storiesList.select("li")
+                
                 for item in items {
+                    // Skip "More..." links
+                    if try item.select("a").first()?.text().lowercased().contains("more") == true {
+                        continue
+                    }
+                    
+                    // Title & URL
                     let titleLink = try item.select("h4 a").first()
-                    let title = try titleLink?.text() ?? ""
-                    let author = try item.select("h4 a").last()?.text() ?? ""
+                    let titleRaw = try titleLink?.text() ?? ""
+                    let title = trimmedTitle(titleRaw)
                     let storyURL = normalizeURL(try titleLink?.attr("href") ?? "")
-                    let rawDescription = try item.select("p").text()
-                    let description = removeHtmlEntities(in: rawDescription)
-                    let strongElements = try item.select("strong").array()
-                    let rating = strongElements.count > 0 ? try strongElements[0].text() : ""
-                    let timesRead = strongElements.count > 1 ? try strongElements[1].text() : ""
-                    let postedDate = strongElements.count > 2 ? try strongElements[2].text() : ""
-                    let categories = item.ownText().components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
-
-                    let story = Story(title: title, author: author, description: description, rating: rating, timesRead: timesRead, postedDate: postedDate, themes: categories, url: storyURL)
+                    
+                    // Author
+                    let authorLink = try item.select("h4 a").last()
+                    let author = try authorLink?.text() ?? "Unknown"
+                    
+                    // Description
+                    let descriptionRaw = try item.select("p").text()
+                    let description = removeHtmlEntities(in: descriptionRaw)
+                    
+                    // Metadata (Rated, Read, Posted)
+                    let strongs = try item.select("strong").array()
+                    let rating = strongs.count > 0 ? try strongs[0].text() : ""
+                    let timesRead = strongs.count > 1 ? try strongs[1].text() : ""
+                    let postedDate = strongs.count > 2 ? try strongs[2].text() : ""
+                    
+                    // Categories (comma-separated in ownText)
+                    let categoryText = try item.ownText()
+                    let categories = categoryText
+                        .components(separatedBy: ",")
+                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        .filter { !$0.isEmpty }
+                    
+                    let story = Story(
+                        title: title,
+                        author: author,
+                        description: description,
+                        rating: rating,
+                        timesRead: timesRead,
+                        postedDate: postedDate,
+                        themes: categories,
+                        url: storyURL
+                    )
                     stories.append(story)
                 }
-
-                let section = Section(title: sectionTitle, stories: stories)
-                sections.append(section)
+                
+                if !stories.isEmpty {
+                    sections.append(Section(title: sectionTitle, stories: stories))
+                } else {
+                    print("Parse warning: Section '\(sectionTitle)' contained no valid stories")
+                }
             }
         } catch {
             print("Error parsing HTML: \(error)")
         }
-
+        
+        print("✅ Successfully parsed \(sections.count) sections with \(sections.reduce(0) { $0 + $1.stories.count }) stories")
         return sections
     }
 }
