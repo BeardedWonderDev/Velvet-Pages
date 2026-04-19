@@ -14,6 +14,7 @@ struct RouterView: View {
     @SceneStorage("showSideBar") var showSideBar: Bool = false
     @SceneStorage("showSettings") var showSettings: Bool = false
     @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = -1
+    @SceneStorage("showFilters") var showFilters: Bool = false
 
     private var selectedSection: Section? {
         guard scrapper.sections.indices.contains(selectedSectionIndex) else { return scrapper.sections.first }
@@ -23,7 +24,7 @@ struct RouterView: View {
     var body: some View {
         NavigationStack {
             HStack(spacing: 0) {
-                if (props.isiPad && props.isLandscape) {
+                if props.isiPad && props.isLandscape {
                     SidebarView()
                 }
 
@@ -42,8 +43,7 @@ struct RouterView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .background {
-                scrapper.backgroundColor
-                    .ignoresSafeArea()
+                scrapper.backgroundColor.ignoresSafeArea()
             }
             .offset(x: showSideBar ? SidebarView.sidebarWidth : 0)
             .overlay(alignment: .leading) {
@@ -62,10 +62,17 @@ struct RouterView: View {
                             }
                     }
             }
+            .sheet(isPresented: $showFilters) {
+                FilterSheetView()
+                    .environmentObject(scrapper)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
+            }
             .environmentObject(props)
             .environmentObject(scrapper)
             .onChange(of: props.isLandscape) { _, _ in
                 showSideBar = false
+                showFilters = false
             }
             .onChange(of: scrapper.sections.count) { _, newValue in
                 if selectedSectionIndex >= newValue {

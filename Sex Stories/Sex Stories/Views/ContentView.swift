@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel
+    @SceneStorage("showFilters") var showFilters: Bool = false
     let section: Section?
 
     init(section: Section? = nil) {
@@ -96,7 +97,7 @@ struct SectionView: View {
                 header
 
                 LazyVStack(spacing: 12) {
-                    ForEach(section.stories) { story in
+                    ForEach(scrapper.filteredStories(in: section)) { story in
                         if !story.title.isEmpty {
                             NavigationLink {
                                 StoryReaderView(story: story)

@@ -11,11 +11,11 @@ struct LibraryView: View {
     @Environment(\.modelContext) private var modelContext
     @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = -1
     @SceneStorage("showSettings") var showSettings: Bool = false
+    @SceneStorage("showFilters") var showFilters: Bool = false
     @Query(sort: [SortDescriptor(\CachedStoryRecord.lastUpdated, order: .reverse)]) private var cachedStories: [CachedStoryRecord]
 
     private var continueReadingStories: [CachedStorySnapshot] {
-        cachedStories
-            .compactMap { $0.snapshot }
+        filteredSnapshots(cachedStories.compactMap { $0.snapshot })
             .sorted {
                 if $0.lastUpdated == $1.lastUpdated {
                     return $0.lastReadProgress > $1.lastReadProgress
@@ -25,9 +25,7 @@ struct LibraryView: View {
     }
 
     private var favoriteStories: [CachedStorySnapshot] {
-        cachedStories
-            .compactMap { $0.snapshot }
-            .filter { $0.isFavorite }
+        filteredSnapshots(cachedStories.compactMap { $0.snapshot }.filter { $0.isFavorite })
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
     }
 
@@ -99,6 +97,21 @@ struct LibraryView: View {
             .padding()
         }
         .background(scrapper.backgroundColor.ignoresSafeArea())
+    }
+
+    private func filteredSnapshots(_ stories: [CachedStorySnapshot]) -> [CachedStorySnapshot] {
+        stories.filter { snapshot in
+            if !scrapper.storyFilterState.selectedCategories.isEmpty {
+                let storyCategories = Set(snapshot.themes.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+                if storyCategories.isDisjoint(with: scrapper.storyFilterState.selectedCategories) { return false }
+            }
+            if !scrapper.storyFilterState.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                let search = scrapper.storyFilterState.searchText.lowercased()
+                let haystack = [snapshot.title, snapshot.author, snapshot.storyDescription, snapshot.themes.joined(separator: " ")].joined(separator: " ").lowercased()
+                if !haystack.contains(search) { return false }
+            }
+            return true
+        }
     }
 
     private func resolveStory(for snapshot: CachedStorySnapshot) -> Story? {
@@ -215,17 +228,6 @@ struct LibraryView: View {
         )
     }
 
-    private func pill(label: String) -> some View {
-        Text(label)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(scrapper.primaryColor)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                Capsule().fill(scrapper.primaryColor.opacity(0.10))
-            )
-    }
-
     private func browseCard(section: Section) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Image(systemName: "books.vertical")
@@ -254,4 +256,3 @@ struct LibraryView: View {
         )
     }
 }
-

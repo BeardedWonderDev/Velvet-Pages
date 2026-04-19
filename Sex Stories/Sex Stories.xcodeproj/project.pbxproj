@@ -27,6 +27,7 @@
 		BBFF7F832F9494CC00FAB220 /* ReaderBookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F7F2F9494CC00FAB220 /* ReaderBookmark.swift */; };
 		BBFF7F842F9494CC00FAB220 /* StoryCacheModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F812F9494CC00FAB220 /* StoryCacheModels.swift */; };
 		BBFF7F852F9494CC00FAB220 /* ReaderPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F802F9494CC00FAB220 /* ReaderPreferences.swift */; };
+		BBFF7F892F95460700FAB220 /* FilterSheetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F882F95460700FAB220 /* FilterSheetView.swift */; };
 		D1A7C6EB2F9B000100000001 /* StoryCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */; };
 /* End PBXBuildFile section */
 
@@ -52,6 +53,7 @@
 		BBFF7F7F2F9494CC00FAB220 /* ReaderBookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderBookmark.swift; sourceTree = "<group>"; };
 		BBFF7F802F9494CC00FAB220 /* ReaderPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPreferences.swift; sourceTree = "<group>"; };
 		BBFF7F812F9494CC00FAB220 /* StoryCacheModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheModels.swift; sourceTree = "<group>"; };
+		BBFF7F882F95460700FAB220 /* FilterSheetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSheetView.swift; sourceTree = "<group>"; };
 		D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -120,6 +122,7 @@
 		2B9630B72B145008002E853B /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				BBFF7F882F95460700FAB220 /* FilterSheetView.swift */,
 				2B9630BB2B145073002E853B /* Router Views */,
 				2B9630BA2B14506D002E853B /* Menu Views */,
 				2B9630B82B14505C002E853B /* ResponsiveView.swift */,
@@ -253,6 +256,7 @@
 				2B9630A32B143F14002E853B /* Sex_StoriesApp.swift in Sources */,
 				2B9630C12B145089002E853B /* HeaderView.swift in Sources */,
 				BBFF7F832F9494CC00FAB220 /* ReaderBookmark.swift in Sources */,
+				BBFF7F892F95460700FAB220 /* FilterSheetView.swift in Sources */,
 				BBFF7F842F9494CC00FAB220 /* StoryCacheModels.swift in Sources */,
 				BBFF7F852F9494CC00FAB220 /* ReaderPreferences.swift in Sources */,
 				BBFF7F712F9357B500FAB220 /* SettingsView.swift in Sources */,

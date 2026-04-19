@@ -19,6 +19,16 @@ final class StoryCacheStore {
         cachedStory(for: story)?.snapshot
     }
 
+    private static let filteredOutCategoryNames: Set<String> = ["rated", "read times", "posted"]
+
+    private func normalizedCategories(from story: Story) -> [StoryCategory] {
+        let cleaned = story.themes
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .filter { !Self.filteredOutCategoryNames.contains($0.lowercased()) }
+        return Array(Set(cleaned.map(StoryCategory.init(name:)))).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
     func saveStory(
         story: Story,
         blocks: [StoryReaderBlock],
@@ -27,6 +37,9 @@ final class StoryCacheStore {
         isFavorite: Bool? = nil
     ) {
         guard let blocksData = try? StoryBlockCacheCoder.encode(blocks) else { return }
+        let categories = normalizedCategories(from: story)
+        let categoriesData = (try? JSONEncoder().encode(categories)) ?? Data()
+        let themesCSV = categories.map(\.name).joined(separator: "|")
 
         let record: CachedStoryRecord
         if let existing = cachedStory(for: story) {
@@ -39,7 +52,8 @@ final class StoryCacheStore {
                 author: story.author,
                 storyDescription: story.description,
                 postedDate: story.postedDate,
-                themesCSV: story.themes.joined(separator: "|"),
+                themesCSV: themesCSV,
+                categoriesData: categoriesData,
                 blocksData: blocksData,
                 lastScrollAnchor: lastScrollAnchor,
                 lastReadProgress: lastReadProgress,
@@ -55,7 +69,8 @@ final class StoryCacheStore {
         record.author = story.author
         record.storyDescription = story.description
         record.postedDate = story.postedDate
-        record.themesCSV = story.themes.joined(separator: "|")
+        record.themesCSV = themesCSV
+        record.categoriesData = categoriesData
         record.blocksData = blocksData
         record.lastUpdated = .now
         if lastScrollAnchor != nil {

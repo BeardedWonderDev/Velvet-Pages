@@ -53,6 +53,13 @@ struct Story: Hashable, Identifiable {
     var url: String
 }
 
+struct StoryFilterState: Hashable {
+    var selectedCategories: Set<String> = []
+    var showOnlyFavorites: Bool = false
+    var showOnlyContinueReading: Bool = false
+    var searchText: String = ""
+}
+
 struct Section: Hashable {
     var title: String
     var stories: [Story]
@@ -68,6 +75,7 @@ final class ScrapperViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var hasLoaded: Bool = false
     @Published var loadError: String?
+    @Published var storyFilterState = StoryFilterState()
 
     private var loadInProgress = false
 
@@ -193,6 +201,31 @@ final class ScrapperViewModel: ObservableObject {
         }
 
         return []
+    }
+
+    var allKnownCategories: [StoryCategory] {
+        let categories = sections.flatMap { $0.stories.flatMap { $0.themes } }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .filter { !["rated", "read times", "posted"].contains($0.lowercased()) }
+        return Array(Set(categories.map(StoryCategory.init(name:)))).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    func filteredStories(in section: Section) -> [Story] {
+        section.stories.filter { story in
+            if !storyFilterState.selectedCategories.isEmpty {
+                let storyCategorySet = Set(story.themes.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+                if storyCategorySet.isDisjoint(with: storyFilterState.selectedCategories) { return false }
+            }
+
+            if !storyFilterState.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                let search = storyFilterState.searchText.lowercased()
+                let haystack = [story.title, story.author, story.description, story.themes.joined(separator: " ")].joined(separator: " ").lowercased()
+                if !haystack.contains(search) { return false }
+            }
+
+            return true
+        }
     }
 
     func removeHtmlEntities(in text: String) -> String {

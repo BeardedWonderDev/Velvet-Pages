@@ -14,6 +14,7 @@ struct HeaderView: View {
     @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = 0
     @SceneStorage("showSettings") var showSettings: Bool = false
     @SceneStorage("showSideBar") var showSideBar: Bool = false
+    @SceneStorage("showFilters") var showFilters: Bool = false
 
     private var headerTitle: String {
         if showSettings {
@@ -57,9 +58,9 @@ struct HeaderView: View {
             .frame(maxWidth: .infinity)
 
             Button {
-                // Placeholder for future notification functionality.
+                showFilters.toggle()
             } label: {
-                Image(systemName: "bell.circle")
+                Image(systemName: "line.3.horizontal.decrease.circle")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 27, height: 27)

@@ -1,6 +1,16 @@
 import Foundation
 import SwiftData
 
+struct StoryCategory: Codable, Hashable, Identifiable {
+    var id: String { normalizedName }
+    let name: String
+
+    var normalizedName: String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+    }
+}
+
 @Model
 final class CachedStoryRecord {
     @Attribute(.unique) var storyID: String
@@ -10,6 +20,7 @@ final class CachedStoryRecord {
     var storyDescription: String
     var postedDate: String
     var themesCSV: String
+    var categoriesData: Data
     var blocksData: Data
     var lastUpdated: Date
     var lastScrollAnchor: String?
@@ -24,6 +35,7 @@ final class CachedStoryRecord {
         storyDescription: String,
         postedDate: String,
         themesCSV: String,
+        categoriesData: Data = Data(),
         blocksData: Data,
         lastUpdated: Date = .now,
         lastScrollAnchor: String? = nil,
@@ -37,6 +49,7 @@ final class CachedStoryRecord {
         self.storyDescription = storyDescription
         self.postedDate = postedDate
         self.themesCSV = themesCSV
+        self.categoriesData = categoriesData
         self.blocksData = blocksData
         self.lastUpdated = lastUpdated
         self.lastScrollAnchor = lastScrollAnchor
@@ -63,6 +76,7 @@ struct CachedStorySnapshot {
     let storyDescription: String
     let postedDate: String
     let themes: [String]
+    let categories: [StoryCategory]
     let blocks: [StoryReaderBlock]
     let lastScrollAnchor: String?
     let lastReadProgress: Double
@@ -73,6 +87,16 @@ struct CachedStorySnapshot {
 extension CachedStoryRecord {
     var snapshot: CachedStorySnapshot? {
         guard let blocks = try? StoryBlockCacheCoder.decode(blocksData) else { return nil }
+        let categoryNames: [String]
+        if !categoriesData.isEmpty,
+           let decoded = try? JSONDecoder().decode([StoryCategory].self, from: categoriesData) {
+            categoryNames = decoded.map { $0.name }
+        } else {
+            categoryNames = themesCSV.split(separator: "|").map(String.init)
+        }
+
+        let categories = categoryNames.map(StoryCategory.init(name:))
+
         return CachedStorySnapshot(
             storyID: storyID,
             storyURL: storyURL,
@@ -80,7 +104,8 @@ extension CachedStoryRecord {
             author: author,
             storyDescription: storyDescription,
             postedDate: postedDate,
-            themes: themesCSV.split(separator: "|").map(String.init),
+            themes: categoryNames,
+            categories: categories,
             blocks: blocks,
             lastScrollAnchor: lastScrollAnchor,
             lastReadProgress: lastReadProgress,
