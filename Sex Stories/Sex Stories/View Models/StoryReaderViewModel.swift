@@ -45,7 +45,6 @@ final class StoryReaderViewModel: ObservableObject {
     @Published var currentScrollAnchor: String?
     
     private var cacheStore: StoryCacheStore?
-    private let bookmarkStore = ReaderBookmarkStore()
     private var didLoad = false
     
     init(story: Story) {
@@ -109,26 +108,6 @@ final class StoryReaderViewModel: ObservableObject {
         cacheStore?.updateReadingProgress(for: story, progress: progress)
     }
 
-    func currentBookmarks() -> [ReaderBookmark] {
-        bookmarkStore.bookmarks(for: story.id)
-            .sorted { $0.createdAt > $1.createdAt }
-    }
-
-    func toggleBookmark(anchorID: String, title: String) {
-        let id = "\(story.id)-\(anchorID)"
-        let existing = bookmarkStore.bookmarks(for: story.id).first(where: { $0.anchorID == anchorID })
-        if let existing {
-            bookmarkStore.delete(id: existing.id)
-        } else {
-            let bookmark = ReaderBookmark(id: id, storyID: story.id, anchorID: anchorID, title: title, createdAt: .now)
-            bookmarkStore.upsert(bookmark)
-        }
-    }
-
-    func isBookmarked(anchorID: String) -> Bool {
-        bookmarkStore.bookmarks(for: story.id).contains { $0.anchorID == anchorID }
-    }
-    
     func resolvedScrollAnchor(from cachedAnchor: String?) -> String? {
         guard let cachedAnchor else { return nil }
         if blocks.contains(where: { $0.stableAnchorID == cachedAnchor }) {

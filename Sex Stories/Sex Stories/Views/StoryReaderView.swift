@@ -78,7 +78,6 @@ struct StoryReaderView: View {
     @State private var didConfigureCache = false
     @State private var didRestoreScroll = false
     @State private var showingReaderSettings = false
-    @State private var selectedAnchorForBookmark: String?
     @State private var progress: Double = 0
 
     init(story: Story) {
@@ -200,34 +199,6 @@ struct StoryReaderView: View {
                 .coordinateSpace(name: "storyScroll")
             }
             .background(scrapper.backgroundColor.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-//            .toolbar {
-//                ToolbarItem(placement: .principal) {
-//                    Text(viewModel.story.title)
-//                        .font(.headline)
-//                        .foregroundStyle(scrapper.primaryColor)
-//                        .lineLimit(1)
-//                }
-//
-//                ToolbarItem(placement: .topBarLeading) {
-//                    Button {
-//                        showingReaderSettings.toggle()
-//                    } label: {
-//                        Image(systemName: "bell.circle")
-//                    }
-//                }
-//
-//                ToolbarItem(placement: .topBarTrailing) {
-//                    Button {
-//                        if let anchor = selectedAnchorForBookmark {
-//                            viewModel.toggleBookmark(anchorID: anchor, title: viewModel.story.title)
-//                        }
-//                    } label: {
-//                        Image(systemName: viewModel.isBookmarked(anchorID: selectedAnchorForBookmark ?? "") ? "bookmark.fill" : "bookmark")
-//                    }
-//                    .disabled(selectedAnchorForBookmark == nil)
-//                }
-//            }
             .sheet(isPresented: $showingReaderSettings) {
                 ReaderSettingsSheet(viewModel: viewModel, scrapper: scrapper)
                     .presentationDetents([.medium, .large])
@@ -239,13 +210,13 @@ struct StoryReaderView: View {
                     .key
 
                 if let topAnchor {
-                    selectedAnchorForBookmark = topAnchor
                     viewModel.currentScrollAnchor = topAnchor
                     viewModel.saveScrollAnchor(topAnchor)
                 }
 
+                let currentAnchor = viewModel.currentScrollAnchor ?? viewModel.restoredScrollAnchor
                 let total = Double(max(viewModel.blocks.count, 1))
-                let currentIndex = Double(viewModel.blocks.firstIndex(where: { $0.stableAnchorID == (selectedAnchorForBookmark ?? "") }) ?? 0)
+                let currentIndex = Double(viewModel.blocks.firstIndex(where: { $0.stableAnchorID == currentAnchor }) ?? 0)
                 progress = min(1, (currentIndex + 1) / total)
             }
             .task {
@@ -384,20 +355,9 @@ private struct ReaderSettingsSheet: View {
                     }
                 }
 
-                SwiftUI.Section("Bookmarks") {
-                    if viewModel.currentBookmarks().isEmpty {
-                        Text("No bookmarks yet.")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(viewModel.currentBookmarks()) { bookmark in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(bookmark.title)
-                                Text(bookmark.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
+                SwiftUI.Section("Reading") {
+                    Text("Progress, favorites, and library sync are handled from the library now.")
+                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Reader Settings")

@@ -22,11 +22,11 @@
 		2B9630D02B999001002E853B /* StoryReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9630D12B999001002E853B /* StoryReaderView.swift */; };
 		2B9630D22B999001002E853B /* StoryReaderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9630D32B999001002E853B /* StoryReaderViewModel.swift */; };
 		BBFF7F712F9357B500FAB220 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F702F9357B500FAB220 /* SettingsView.swift */; };
-		BBFF7F752F936A7D00FAB220 /* StoryCacheModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F742F936A7D00FAB220 /* StoryCacheModels.swift */; };
 		BBFF7F772F936FD500FAB220 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F762F936FD500FAB220 /* LibraryView.swift */; };
-		BBFF7F7B2F937A1500FAB220 /* ReaderBookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F792F937A1500FAB220 /* ReaderBookmark.swift */; };
-		BBFF7F7C2F937A1500FAB220 /* ReaderPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F7A2F937A1500FAB220 /* ReaderPreferences.swift */; };
 		BBFF7F7E2F937A2500FAB220 /* ReaderBookmarkStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F7D2F937A2500FAB220 /* ReaderBookmarkStore.swift */; };
+		BBFF7F832F9494CC00FAB220 /* ReaderBookmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F7F2F9494CC00FAB220 /* ReaderBookmark.swift */; };
+		BBFF7F842F9494CC00FAB220 /* StoryCacheModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F812F9494CC00FAB220 /* StoryCacheModels.swift */; };
+		BBFF7F852F9494CC00FAB220 /* ReaderPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFF7F802F9494CC00FAB220 /* ReaderPreferences.swift */; };
 		D1A7C6EB2F9B000100000001 /* StoryCacheStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */; };
 /* End PBXBuildFile section */
 
@@ -47,11 +47,11 @@
 		2B9630D12B999001002E853B /* StoryReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryReaderView.swift; sourceTree = "<group>"; };
 		2B9630D32B999001002E853B /* StoryReaderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryReaderViewModel.swift; sourceTree = "<group>"; };
 		BBFF7F702F9357B500FAB220 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		BBFF7F742F936A7D00FAB220 /* StoryCacheModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheModels.swift; sourceTree = "<group>"; };
 		BBFF7F762F936FD500FAB220 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
-		BBFF7F792F937A1500FAB220 /* ReaderBookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderBookmark.swift; sourceTree = "<group>"; };
-		BBFF7F7A2F937A1500FAB220 /* ReaderPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPreferences.swift; sourceTree = "<group>"; };
 		BBFF7F7D2F937A2500FAB220 /* ReaderBookmarkStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderBookmarkStore.swift; sourceTree = "<group>"; };
+		BBFF7F7F2F9494CC00FAB220 /* ReaderBookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderBookmark.swift; sourceTree = "<group>"; };
+		BBFF7F802F9494CC00FAB220 /* ReaderPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPreferences.swift; sourceTree = "<group>"; };
+		BBFF7F812F9494CC00FAB220 /* StoryCacheModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheModels.swift; sourceTree = "<group>"; };
 		D1A7C6EA2F9B000100000001 /* StoryCacheStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -86,9 +86,7 @@
 		2B9630A12B143F14002E853B /* Sex Stories */ = {
 			isa = PBXGroup;
 			children = (
-				BBFF7F792F937A1500FAB220 /* ReaderBookmark.swift */,
-				BBFF7F7A2F937A1500FAB220 /* ReaderPreferences.swift */,
-				BBFF7F742F936A7D00FAB220 /* StoryCacheModels.swift */,
+				BBFF7F822F9494CC00FAB220 /* Models */,
 				2B9630B62B145000002E853B /* View Models */,
 				D1A7C6E72F9B000100000001 /* Services */,
 				2B9630B72B145008002E853B /* Views */,
@@ -148,6 +146,16 @@
 				2B9630C02B145089002E853B /* HeaderView.swift */,
 			);
 			path = "Router Views";
+			sourceTree = "<group>";
+		};
+		BBFF7F822F9494CC00FAB220 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				BBFF7F7F2F9494CC00FAB220 /* ReaderBookmark.swift */,
+				BBFF7F802F9494CC00FAB220 /* ReaderPreferences.swift */,
+				BBFF7F812F9494CC00FAB220 /* StoryCacheModels.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
 		D1A7C6E72F9B000100000001 /* Services */ = {
@@ -241,18 +249,18 @@
 				2B9630B52B143F6C002E853B /* ScrapperViewModel.swift in Sources */,
 				2B9630BD2B145080002E853B /* SidebarView.swift in Sources */,
 				2B9630BF2B145084002E853B /* RouterView.swift in Sources */,
-				BBFF7F752F936A7D00FAB220 /* StoryCacheModels.swift in Sources */,
 				2B9630A52B143F14002E853B /* ContentView.swift in Sources */,
 				2B9630A32B143F14002E853B /* Sex_StoriesApp.swift in Sources */,
 				2B9630C12B145089002E853B /* HeaderView.swift in Sources */,
+				BBFF7F832F9494CC00FAB220 /* ReaderBookmark.swift in Sources */,
+				BBFF7F842F9494CC00FAB220 /* StoryCacheModels.swift in Sources */,
+				BBFF7F852F9494CC00FAB220 /* ReaderPreferences.swift in Sources */,
 				BBFF7F712F9357B500FAB220 /* SettingsView.swift in Sources */,
 				2B9630D02B999001002E853B /* StoryReaderView.swift in Sources */,
 				BBFF7F7E2F937A2500FAB220 /* ReaderBookmarkStore.swift in Sources */,
 				2B9630D22B999001002E853B /* StoryReaderViewModel.swift in Sources */,
 				BBFF7F772F936FD500FAB220 /* LibraryView.swift in Sources */,
 				D1A7C6EB2F9B000100000001 /* StoryCacheStore.swift in Sources */,
-				BBFF7F7B2F937A1500FAB220 /* ReaderBookmark.swift in Sources */,
-				BBFF7F7C2F937A1500FAB220 /* ReaderPreferences.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

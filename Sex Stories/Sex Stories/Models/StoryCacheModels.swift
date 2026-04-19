@@ -14,6 +14,7 @@ final class CachedStoryRecord {
     var lastUpdated: Date
     var lastScrollAnchor: String?
     var lastReadProgress: Double
+    var isFavorite: Bool
 
     init(
         storyID: String,
@@ -26,7 +27,8 @@ final class CachedStoryRecord {
         blocksData: Data,
         lastUpdated: Date = .now,
         lastScrollAnchor: String? = nil,
-        lastReadProgress: Double = 0
+        lastReadProgress: Double = 0,
+        isFavorite: Bool = false
     ) {
         self.storyID = storyID
         self.storyURL = storyURL
@@ -39,6 +41,7 @@ final class CachedStoryRecord {
         self.lastUpdated = lastUpdated
         self.lastScrollAnchor = lastScrollAnchor
         self.lastReadProgress = lastReadProgress
+        self.isFavorite = isFavorite
     }
 }
 
@@ -63,6 +66,7 @@ struct CachedStorySnapshot {
     let blocks: [StoryReaderBlock]
     let lastScrollAnchor: String?
     let lastReadProgress: Double
+    let isFavorite: Bool
     let lastUpdated: Date
 }
 
@@ -80,6 +84,7 @@ extension CachedStoryRecord {
             blocks: blocks,
             lastScrollAnchor: lastScrollAnchor,
             lastReadProgress: lastReadProgress,
+            isFavorite: isFavorite,
             lastUpdated: lastUpdated
         )
     }

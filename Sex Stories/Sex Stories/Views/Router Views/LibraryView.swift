@@ -8,6 +8,7 @@ import SwiftUI
 
 struct LibraryView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel
+    @Environment(\.modelContext) private var modelContext
     @SceneStorage("selectedSectionIndex") var selectedSectionIndex: Int = -1
     @SceneStorage("showSettings") var showSettings: Bool = false
     @Query(sort: [SortDescriptor(\CachedStoryRecord.lastUpdated, order: .reverse)]) private var cachedStories: [CachedStoryRecord]
@@ -23,9 +24,39 @@ struct LibraryView: View {
             }
     }
 
+    private var favoriteStories: [CachedStorySnapshot] {
+        cachedStories
+            .compactMap { $0.snapshot }
+            .filter { $0.isFavorite }
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
+                if !favoriteStories.isEmpty {
+                    sectionBlock(title: "Favorites", subtitle: "Stories you’ve saved for quick access.") {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(favoriteStories.prefix(6), id: \.storyID) { story in
+                                    if let resolvedStory = resolveStory(for: story) {
+                                        NavigationLink {
+                                            StoryReaderView(story: resolvedStory)
+                                                .environmentObject(scrapper)
+                                        } label: {
+                                            favoriteCard(snapshot: story)
+                                        }
+                                        .buttonStyle(.plain)
+                                    } else {
+                                        favoriteCard(snapshot: story)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 2)
+                        }
+                    }
+                }
+
                 if !continueReadingStories.isEmpty {
                     sectionBlock(title: "Continue Reading", subtitle: "Stories sorted by most recent activity.") {
                         ScrollView(.horizontal, showsIndicators: false) {
@@ -79,20 +110,41 @@ struct LibraryView: View {
         return nil
     }
 
-    private func continueReadingCard(snapshot: CachedStorySnapshot) -> some View {
+    private func toggleFavorite(for snapshot: CachedStorySnapshot) {
+        let storyID = snapshot.storyID
+        let descriptor = FetchDescriptor<CachedStoryRecord>(predicate: #Predicate { $0.storyID == storyID })
+        guard let record = try? modelContext.fetch(descriptor).first else { return }
+        record.isFavorite.toggle()
+        record.lastUpdated = .now
+        try? modelContext.save()
+    }
+
+    private func storyCard(snapshot: CachedStorySnapshot, isFavorite: Bool) -> some View {
         let progress = max(0, min(1, snapshot.lastReadProgress))
         return VStack(alignment: .leading, spacing: 10) {
-            Text(snapshot.title)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(scrapper.primaryColor)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(snapshot.title)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(scrapper.primaryColor)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(snapshot.author.isEmpty ? snapshot.storyDescription : "By \(snapshot.author)")
-                .font(.caption)
-                .foregroundStyle(scrapper.secondaryColor)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(snapshot.author.isEmpty ? snapshot.storyDescription : "By \(snapshot.author)")
+                        .font(.caption)
+                        .foregroundStyle(scrapper.secondaryColor)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                Button {
+                    toggleFavorite(for: snapshot)
+                } label: {
+                    Image(systemName: isFavorite ? "heart.fill" : "heart")
+                        .foregroundStyle(isFavorite ? .red : scrapper.secondaryColor)
+                }
+                .buttonStyle(.plain)
+            }
 
             Spacer(minLength: 0)
 
@@ -128,6 +180,14 @@ struct LibraryView: View {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
         )
+    }
+
+    private func continueReadingCard(snapshot: CachedStorySnapshot) -> some View {
+        storyCard(snapshot: snapshot, isFavorite: false)
+    }
+
+    private func favoriteCard(snapshot: CachedStorySnapshot) -> some View {
+        storyCard(snapshot: snapshot, isFavorite: true)
     }
 
     private func sectionBlock<Content: View>(title: String, subtitle: String, @ViewBuilder content: () -> Content) -> some View {
