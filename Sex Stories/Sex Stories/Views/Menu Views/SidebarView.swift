@@ -83,19 +83,19 @@ struct SidebarView: View {
                     }
                 )
 
-                collapsibleMenuSection(
-                    title: "Categories",
-                    systemImage: "square.grid.2x2.fill",
-                    isExpanded: $showCategoriesMenu,
-                    items: categoryItems,
-                    onSelect: { item in
-                        Task { await scrapper.loadBrowsePage(title: item.name, urlString: item.url) }
-                        showSettings = false
-                        showCategoriesMenu.toggle()
-                        selectedSectionIndex = -1
-                        showSideBar.toggle()
-                    }
-                )
+//                collapsibleMenuSection(
+//                    title: "Categories",
+//                    systemImage: "square.grid.2x2.fill",
+//                    isExpanded: $showCategoriesMenu,
+//                    items: categoryItems,
+//                    onSelect: { item in
+//                        Task { await scrapper.loadBrowsePage(title: item.name, urlString: item.url) }
+//                        showSettings = false
+//                        showCategoriesMenu.toggle()
+//                        selectedSectionIndex = -1
+//                        showSideBar.toggle()
+//                    }
+//                )
 
                 ForEach(Array(sectionItems.enumerated()), id: \.offset) { index, section in
                     sidebarItem(
