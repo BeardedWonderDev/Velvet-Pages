@@ -77,6 +77,7 @@ struct SidebarView: View {
                     onSelect: { item in
                         Task { await scrapper.loadBrowsePage(title: item.name, urlString: item.url) }
                         showSettings = false
+                        showGenresMenu.toggle()
                         selectedSectionIndex = -1
                         showSideBar.toggle()
                     }
@@ -90,6 +91,7 @@ struct SidebarView: View {
                     onSelect: { item in
                         Task { await scrapper.loadBrowsePage(title: item.name, urlString: item.url) }
                         showSettings = false
+                        showCategoriesMenu.toggle()
                         selectedSectionIndex = -1
                         showSideBar.toggle()
                     }
