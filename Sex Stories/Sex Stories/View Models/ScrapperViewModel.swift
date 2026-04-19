@@ -293,7 +293,7 @@ final class ScrapperViewModel: ObservableObject {
         return storiesURL + "/" + href
     }
 
-    // MARK: - Updated Robust Parser (April 2026)
+    // MARK: - Updated Robust Parser (April 2026 - Fixed Category Cleaning)
 
     private func parseSectionsWithStories(html: String) -> [Section] {
         var sections = [Section]()
@@ -311,7 +311,6 @@ final class ScrapperViewModel: ObservableObject {
                 let sectionTitle = try header.text().trimmingCharacters(in: .whitespacesAndNewlines)
                 var stories: [Story] = []
                 
-                // Get the stories list
                 guard let storiesList = try header.nextElementSibling()?.select("ul.stories_list").first() else {
                     print("Parse warning: No stories_list ul found for section '\(sectionTitle)'")
                     continue
@@ -339,18 +338,38 @@ final class ScrapperViewModel: ObservableObject {
                     let descriptionRaw = try item.select("p").text()
                     let description = removeHtmlEntities(in: descriptionRaw)
                     
-                    // Metadata (Rated, Read, Posted)
+                    // Metadata
                     let strongs = try item.select("strong").array()
                     let rating = strongs.count > 0 ? try strongs[0].text() : ""
                     let timesRead = strongs.count > 1 ? try strongs[1].text() : ""
                     let postedDate = strongs.count > 2 ? try strongs[2].text() : ""
                     
-                    // Categories (comma-separated in ownText)
-                    let categoryText = try item.ownText()
-                    let categories = categoryText
-                        .components(separatedBy: ",")
-                        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                        .filter { !$0.isEmpty }
+                    // ==================== IMPROVED CATEGORY PARSING ====================
+                    var categories: [String] = []
+                    
+                    // Get all direct text nodes
+                    let ownTextNodes = try item.textNodes()
+                    if !ownTextNodes.isEmpty {
+                        // The categories usually appear in the last text node after the metadata
+                        let lastText = ownTextNodes.last?.text() ?? ""
+                        
+                        // Split by comma and clean
+                        let rawCategories = lastText
+                            .components(separatedBy: ",")
+                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                            .filter { !$0.isEmpty }
+                        
+                        // Final filter to remove any metadata pollution
+                        categories = rawCategories.filter { category in
+                            let lower = category.lowercased()
+                            return !lower.contains("rated") &&
+                                   !lower.contains("read") &&
+                                   !lower.contains("posted") &&
+                                   !lower.contains("times") &&
+                                   !lower.contains("ago")
+                        }
+                    }
+                    // =================================================================
                     
                     let story = Story(
                         title: title,
@@ -367,15 +386,14 @@ final class ScrapperViewModel: ObservableObject {
                 
                 if !stories.isEmpty {
                     sections.append(Section(title: sectionTitle, stories: stories))
-                } else {
-                    print("Parse warning: Section '\(sectionTitle)' contained no valid stories")
                 }
             }
         } catch {
             print("Error parsing HTML: \(error)")
         }
         
-        print("✅ Successfully parsed \(sections.count) sections with \(sections.reduce(0) { $0 + $1.stories.count }) stories")
+        let totalStories = sections.reduce(0) { $0 + $1.stories.count }
+        print("✅ Successfully parsed \(sections.count) sections with \(totalStories) stories")
         return sections
     }
 }
