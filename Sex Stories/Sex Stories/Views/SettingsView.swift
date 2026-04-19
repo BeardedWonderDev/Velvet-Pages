@@ -43,17 +43,41 @@ struct SettingsView: View {
 
                 themedCard(title: "Theme Preview") {
                     VStack(alignment: .leading, spacing: 10) {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(scrapper.primaryColor)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [scrapper.primaryColor, scrapper.primaryColor.opacity(0.72)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                             .frame(height: 24)
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(scrapper.secondaryColor)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [scrapper.secondaryColor, scrapper.secondaryColor.opacity(0.72)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                             .frame(height: 24)
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(scrapper.accentColor)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [scrapper.accentColor, scrapper.accentColor.opacity(0.72)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                             .frame(height: 24)
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(scrapper.backgroundColor)
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [scrapper.backgroundColor, scrapper.backgroundColor.opacity(0.72)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
                             .frame(height: 24)
                     }
                     .frame(maxWidth: .infinity)

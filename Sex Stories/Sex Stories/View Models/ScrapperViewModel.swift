@@ -348,7 +348,7 @@ final class ScrapperViewModel: ObservableObject {
                     var categories: [String] = []
                     
                     // Get all direct text nodes
-                    let ownTextNodes = try item.textNodes()
+                    let ownTextNodes = item.textNodes()
                     if !ownTextNodes.isEmpty {
                         // The categories usually appear in the last text node after the metadata
                         let lastText = ownTextNodes.last?.text() ?? ""

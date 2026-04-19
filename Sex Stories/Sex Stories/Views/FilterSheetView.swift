@@ -19,8 +19,10 @@ struct FilterSheetView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Toggle("Favorites only", isOn: $scrapper.storyFilterState.showOnlyFavorites)
                             .tint(scrapper.accentColor)
+                            .toggleStyle(.switch)
                         Toggle("Continue reading only", isOn: $scrapper.storyFilterState.showOnlyContinueReading)
                             .tint(scrapper.accentColor)
+                            .toggleStyle(.switch)
 
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Search")

@@ -24,10 +24,14 @@ struct SidebarView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 10) {
-                    Image(systemName: "heart.text.square.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(scrapper.accentColor)
-                        .frame(width: 20)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(scrapper.accentColor.opacity(0.14))
+                        Image(systemName: "books.vertical.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(scrapper.accentColor)
+                    }
+                    .frame(width: 28, height: 28)
 
                     Text("SexStories.com")
                         .font(.headline)
@@ -98,14 +102,18 @@ struct SidebarView: View {
     @ViewBuilder
     private func sidebarItem(title: String, systemImage: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: systemImage)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(scrapper.accentColor)
-                .frame(width: 20)
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isSelected ? scrapper.accentColor.opacity(0.14) : scrapper.primaryColor.opacity(0.06))
+                Image(systemName: systemImage)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(isSelected ? scrapper.accentColor : scrapper.secondaryColor)
+            }
+            .frame(width: 28, height: 28)
 
             Text(title)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(isSelected ? scrapper.accentColor : scrapper.secondaryColor)
+                .foregroundStyle(isSelected ? scrapper.primaryColor : scrapper.secondaryColor)
                 .lineLimit(1)
 
             Spacer(minLength: 0)
@@ -116,7 +124,20 @@ struct SidebarView: View {
         .background {
             if isSelected {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(scrapper.primaryColor.opacity(0.18))
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                scrapper.primaryColor.opacity(0.18),
+                                scrapper.primaryColor.opacity(0.10)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(scrapper.primaryColor.opacity(0.10), lineWidth: 1)
+                    )
                     .matchedGeometryEffect(id: "TAB", in: animation)
             }
         }

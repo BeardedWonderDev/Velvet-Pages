@@ -32,61 +32,37 @@ struct LibraryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                if !favoriteStories.isEmpty {
-                    sectionBlock(title: "Favorites", subtitle: "Stories you’ve saved for quick access.") {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(favoriteStories.prefix(6), id: \.storyID) { story in
-                                    if let resolvedStory = resolveStory(for: story) {
-                                        NavigationLink {
-                                            StoryReaderView(story: resolvedStory)
-                                                .environmentObject(scrapper)
-                                        } label: {
-                                            favoriteCard(snapshot: story)
-                                        }
-                                        .buttonStyle(.plain)
-                                    } else {
-                                        favoriteCard(snapshot: story)
-                                    }
-                                }
-                            }
-                            .padding(.vertical, 2)
-                        }
+                if !continueReadingStories.isEmpty {
+                    sectionBlock(title: "Continue Reading", subtitle: "Pick up where you left off.", accent: scrapper.accentColor.opacity(0.20)) {
+                        storyCarousel(stories: continueReadingStories.prefix(6), card: continueReadingCard)
                     }
+                } else {
+                    emptySectionBlock(
+                        title: "Continue Reading",
+                        subtitle: "Start a story to see it here."
+                    )
                 }
 
-                if !continueReadingStories.isEmpty {
-                    sectionBlock(title: "Continue Reading", subtitle: "Stories sorted by most recent activity.") {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 12) {
-                                ForEach(continueReadingStories.prefix(6), id: \.storyID) { story in
-                                    if let resolvedStory = resolveStory(for: story) {
-                                        NavigationLink {
-                                            StoryReaderView(story: resolvedStory)
-                                                .environmentObject(scrapper)
-                                        } label: {
-                                            continueReadingCard(snapshot: story)
-                                        }
-                                        .buttonStyle(.plain)
-                                    } else {
-                                        continueReadingCard(snapshot: story)
-                                    }
-                                }
-                            }
-                            .padding(.vertical, 2)
-                        }
+                if !favoriteStories.isEmpty {
+                    sectionBlock(title: "Favorites", subtitle: "Saved stories for quick access.", accent: .pink.opacity(0.18)) {
+                        storyCarousel(stories: favoriteStories.prefix(6), card: favoriteCard)
                     }
+                } else {
+                    emptySectionBlock(
+                        title: "Favorites",
+                        subtitle: "Tap the heart on a story to save it here."
+                    )
                 }
 
                 if !scrapper.sections.isEmpty {
-                    sectionBlock(title: "Browse", subtitle: "Explore everything available in the library.") {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 12)], spacing: 12) {
+                    sectionBlock(title: "Browse", subtitle: "Open a section to explore the library.", accent: scrapper.primaryColor.opacity(0.10)) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                             ForEach(Array(scrapper.sections.enumerated()), id: \.offset) { index, section in
                                 Button {
                                     showSettings = false
                                     selectedSectionIndex = index
                                 } label: {
-                                    browseCard(section: section)
+                                    browseCard(section: section, index: index)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -132,21 +108,30 @@ struct LibraryView: View {
         try? modelContext.save()
     }
 
-    private func storyCard(snapshot: CachedStorySnapshot, isFavorite: Bool) -> some View {
+    private func storyCard(snapshot: CachedStorySnapshot, isFavorite: Bool, favoriteTint: Color, treatment: CardTreatment) -> some View {
         let progress = max(0, min(1, snapshot.lastReadProgress))
-        return VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top) {
+        let titleTint: Color = treatment == .favorite ? scrapper.primaryColor : scrapper.primaryColor
+        let cardFill: some ShapeStyle = treatment == .continueReading
+            ? AnyShapeStyle(.linearGradient(
+                colors: [scrapper.backgroundColor.opacity(0.98), scrapper.backgroundColor.opacity(0.90)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ))
+            : AnyShapeStyle(scrapper.backgroundColor.opacity(0.96))
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top, spacing: 10) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(snapshot.title)
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(scrapper.primaryColor)
+                        .foregroundStyle(titleTint)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
-                    Text(snapshot.author.isEmpty ? snapshot.storyDescription : "By \(snapshot.author)")
+                    Text(snapshot.author.isEmpty ? "Unknown author" : snapshot.author)
                         .font(.caption)
                         .foregroundStyle(scrapper.secondaryColor)
-                        .lineLimit(2)
+                        .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
@@ -154,56 +139,100 @@ struct LibraryView: View {
                     toggleFavorite(for: snapshot)
                 } label: {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
-                        .foregroundStyle(isFavorite ? .red : scrapper.secondaryColor)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(isFavorite ? favoriteTint : scrapper.secondaryColor)
+                        .frame(width: 32, height: 32)
+                        .background(
+                            Circle()
+                                .fill(isFavorite ? favoriteTint.opacity(0.12) : scrapper.primaryColor.opacity(0.04))
+                        )
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(isFavorite ? "Remove from favorites" : "Add to favorites")
             }
 
             Spacer(minLength: 0)
 
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 7) {
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {
                         Capsule().fill(scrapper.primaryColor.opacity(0.10))
                         Capsule()
-                            .fill(scrapper.accentColor)
+                            .fill(treatment == .favorite ? favoriteTint : scrapper.accentColor)
                             .frame(width: proxy.size.width * progress)
                     }
                 }
                 .frame(height: 8)
 
                 HStack {
-                    Text("\(Int(progress * 100))% read")
+                    Text(treatment == .favorite ? "Saved" : "\(Int(progress * 100))% read")
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(scrapper.secondaryColor)
                     Spacer()
-                    Image(systemName: "arrow.right.circle.fill")
-                        .foregroundStyle(scrapper.accentColor)
-                        .font(.system(size: 18, weight: .semibold))
+                    Image(systemName: treatment == .continueReading ? "arrow.right.circle.fill" : "chevron.right")
+                        .foregroundStyle(treatment == .favorite ? favoriteTint : scrapper.accentColor)
+                        .font(.system(size: treatment == .continueReading ? 18 : 12, weight: .semibold))
                 }
             }
         }
         .padding(14)
-        .frame(width: 240, height: 150, alignment: .leading)
+        .frame(width: 240, height: 152, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(scrapper.backgroundColor.opacity(0.96))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(cardFill)
+                .shadow(color: .black.opacity(scrapper.selectedTheme == .night ? 0.18 : 0.06), radius: 10, x: 0, y: 5)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            scrapper.primaryColor.opacity(0.14),
+                            scrapper.primaryColor.opacity(0.03)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
+    }
+
+    private enum CardTreatment {
+        case continueReading
+        case favorite
     }
 
     private func continueReadingCard(snapshot: CachedStorySnapshot) -> some View {
-        storyCard(snapshot: snapshot, isFavorite: false)
+        storyCard(snapshot: snapshot, isFavorite: false, favoriteTint: .red, treatment: .continueReading)
     }
 
     private func favoriteCard(snapshot: CachedStorySnapshot) -> some View {
-        storyCard(snapshot: snapshot, isFavorite: true)
+        storyCard(snapshot: snapshot, isFavorite: true, favoriteTint: .pink, treatment: .favorite)
     }
 
-    private func sectionBlock<Content: View>(title: String, subtitle: String, @ViewBuilder content: () -> Content) -> some View {
+    private func storyCarousel<Content: View>(stories: ArraySlice<CachedStorySnapshot>, card: @escaping (CachedStorySnapshot) -> Content) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Array(stories), id: \.storyID) { story in
+                    if let resolvedStory = resolveStory(for: story) {
+                        NavigationLink {
+                            StoryReaderView(story: resolvedStory)
+                                .environmentObject(scrapper)
+                        } label: {
+                            card(story)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        card(story)
+                    }
+                }
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    private func sectionBlock<Content: View>(title: String, subtitle: String, accent: Color, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
@@ -219,20 +248,85 @@ struct LibraryView: View {
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.06 : 0.04))
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [accent, scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.04 : 0.02)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            scrapper.primaryColor.opacity(0.16),
+                            scrapper.primaryColor.opacity(0.05)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
     }
 
-    private func browseCard(section: Section) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Image(systemName: "books.vertical")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(scrapper.accentColor)
+    private func emptySectionBlock(title: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(title)
+                .font(.title3.bold())
+                .foregroundStyle(scrapper.primaryColor)
+
+            Text(subtitle)
+                .font(.footnote)
+                .foregroundStyle(scrapper.secondaryColor)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.06 : 0.04),
+                            scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.03 : 0.02)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .strokeBorder(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+        )
+    }
+
+    private func browseCard(section: Section, index: Int) -> some View {
+        let symbol = ["books.vertical", "bookmark.fill", "sparkles", "square.grid.2x2.fill", "pencil.and.outline", "bookmark.circle.fill"]
+        let chosen = symbol[index % symbol.count]
+        let tint = [scrapper.accentColor, .pink, .purple, .blue, .orange, .green][index % 6]
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .top) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(tint.opacity(0.14))
+                    Image(systemName: chosen)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(tint)
+                }
+                .frame(width: 38, height: 38)
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(scrapper.secondaryColor)
+            }
 
             Text(scrapper.trimmedTitle(section.title))
                 .font(.subheadline.weight(.semibold))
@@ -241,18 +335,35 @@ struct LibraryView: View {
                 .multilineTextAlignment(.leading)
 
             Text("Open section")
-                .font(.caption)
+                .font(.caption.weight(.medium))
                 .foregroundStyle(scrapper.secondaryColor)
         }
         .padding(14)
-        .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
+        .frame(maxWidth: .infinity, minHeight: 118, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(scrapper.backgroundColor.opacity(0.96))
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            tint.opacity(0.10),
+                            scrapper.backgroundColor.opacity(0.98)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: tint.opacity(0.12), radius: 8, x: 0, y: 4)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [tint.opacity(0.22), scrapper.primaryColor.opacity(0.06)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
     }
 }
