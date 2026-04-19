@@ -3,13 +3,15 @@
 //  Sex Stories
 //
 //  Created by BoiseITGuru on 11/26/23.
-//  Updated: April 2026 - More robust parser
+//  Updated: April 2026 - Robust parser + Genres/Themes menu support
 //
 
 import Foundation
 import Network
 import SwiftSoup
 import SwiftUI
+
+// MARK: - Data Models
 
 enum AppTheme: String, CaseIterable, Identifiable {
     case light
@@ -30,14 +32,10 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var colors: (primary: Color, secondary: Color, accent: Color, background: Color) {
         switch self {
-        case .light:
-            return (.black, .secondary, .blue, .white)
-        case .sepia:
-            return (.black, .secondary, .brown, Color(red: 0.96, green: 0.92, blue: 0.84))
-        case .night:
-            return (.white, Color.white.opacity(0.75), .mint, Color(red: 0.09, green: 0.10, blue: 0.14))
-        case .paper:
-            return (.primary, .secondary, .teal, Color(red: 0.98, green: 0.97, blue: 0.94))
+        case .light:   return (.black, .secondary, .blue, .white)
+        case .sepia:   return (.black, .secondary, .brown, Color(red: 0.96, green: 0.92, blue: 0.84))
+        case .night:   return (.white, Color.white.opacity(0.75), .mint, Color(red: 0.09, green: 0.10, blue: 0.14))
+        case .paper:   return (.primary, .secondary, .teal, Color(red: 0.98, green: 0.97, blue: 0.94))
         }
     }
 }
@@ -52,6 +50,19 @@ struct Story: Hashable, Identifiable {
     var postedDate: String
     var themes: [String]
     var url: String
+}
+
+struct MenuItem: Hashable, Identifiable {
+    let id = UUID()
+    var name: String
+    var url: String
+    var count: String?          // e.g. "(8643)"
+}
+
+struct MenuSection: Hashable, Identifiable {
+    let id = UUID()
+    var title: String           // "Genres" or "Themes"
+    var items: [MenuItem]
 }
 
 struct StoryFilterState: Hashable {
@@ -72,7 +83,8 @@ final class ScrapperViewModel: ObservableObject {
     private let storiesURL = "https://sexstories.com"
 
     @Published var isConnected: Bool = false
-    @Published var sections: [Section] = []
+    @Published var sections: [Section] = []           // Homepage story sections
+    @Published var menuSections: [MenuSection] = []   // NEW: Genres & Themes
     @Published var isLoading: Bool = false
     @Published var hasLoaded: Bool = false
     @Published var loadError: String?
@@ -137,26 +149,7 @@ final class ScrapperViewModel: ObservableObject {
         self.backgroundColor = newTheme.colors.background
     }
 
-    func fetchAndParseHTML(from urlString: String) async -> [Section] {
-        guard let url = URL(string: urlString) else {
-            print("Invalid URL")
-            return []
-        }
-
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let htmlContent = String(data: data, encoding: .utf8) ?? ""
-            return parseSectionsWithStories(html: htmlContent)
-        } catch {
-            let nsError = error as NSError
-            if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
-                print("Network request cancelled")
-            } else {
-                print("Network request failed: \(error)")
-            }
-            return []
-        }
-    }
+    // MARK: - Loading
 
     @MainActor
     func loadSectionsIfNeeded(forceRefresh: Bool = false) async {
@@ -176,200 +169,88 @@ final class ScrapperViewModel: ObservableObject {
             loadInProgress = false
         }
 
-        let loadedSections = await fetchStorySectionsWithRetry()
-        if loadedSections.isEmpty {
-            if !Task.isCancelled {
-                loadError = "Unable to load stories from the site. The page may be unavailable or the HTML structure may have changed."
-            }
+        async let storySections = fetchAndParseHTML(from: storiesURL)
+        async let menuData = parseMenuSections(from: storiesURL)
+
+        let loadedStorySections = await storySections
+        let loadedMenuSections = await menuData
+
+        if loadedStorySections.isEmpty && loadedMenuSections.isEmpty {
+            loadError = "Unable to load content from the site. The page may be unavailable or the HTML structure may have changed."
             return
         }
 
-        sections = loadedSections
+        sections = loadedStorySections
+        menuSections = loadedMenuSections
         hasLoaded = true
     }
 
-    private func fetchStorySectionsWithRetry() async -> [Section] {
-        let attempts = 2
-        for attempt in 1...attempts {
-            let result = await fetchAndParseHTML(from: storiesURL)
-            if !result.isEmpty {
-                return result
-            }
-
-            if attempt < attempts {
-                try? await Task.sleep(nanoseconds: 350_000_000)
-            }
-        }
-        return []
-    }
-
-    var allKnownCategories: [StoryCategory] {
-        let categories = sections.flatMap { $0.stories.flatMap { $0.themes } }
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .filter { !["rated", "read times", "posted"].contains($0.lowercased()) }
-        return Array(Set(categories.map(StoryCategory.init(name:)))).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
-    }
-
-    func filteredStories(in section: Section) -> [Story] {
-        section.stories.filter { story in
-            if !storyFilterState.selectedCategories.isEmpty {
-                let storyCategorySet = Set(story.themes.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
-                if storyCategorySet.isDisjoint(with: storyFilterState.selectedCategories) { return false }
-            }
-
-            if !storyFilterState.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                let search = storyFilterState.searchText.lowercased()
-                let haystack = [story.title, story.author, story.description, story.themes.joined(separator: " ")].joined(separator: " ").lowercased()
-                if !haystack.contains(search) { return false }
-            }
-
-            return true
+    func fetchAndParseHTML(from urlString: String) async -> [Section] {
+        guard let url = URL(string: urlString) else { return [] }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let html = String(data: data, encoding: .utf8) ?? ""
+            return parseSectionsWithStories(html: html)
+        } catch {
+            print("Fetch failed: \(error)")
+            return []
         }
     }
 
-    // MARK: - Improved Helpers
-
-    func removeHtmlEntities(in text: String) -> String {
-        var cleaned = text
-        let replacements = [
-            "&laquo;": "",
-            "&raquo;": "",
-            "«": "",
-            "»": "",
-            "&hellip;": "...",
-            "&ndash;": "-",
-            "&mdash;": "-",
-            "&amp;": "&",
-            "&#039;": "'",
-            "&quot;": "\""
-        ]
-        
-        for (entity, replacement) in replacements {
-            cleaned = cleaned.replacingOccurrences(of: entity, with: replacement)
+    private func parseMenuSections(from urlString: String) async -> [MenuSection] {
+        guard let url = URL(string: urlString) else { return [] }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let html = String(data: data, encoding: .utf8) ?? ""
+            return parseMenuFromHTML(html: html)
+        } catch {
+            print("Menu fetch failed: \(error)")
+            return []
         }
-        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    func trimmedTitle(_ title: String) -> String {
-        var cleaned = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        cleaned = cleaned.replacingOccurrences(
-            of: #"\s*[-–—]?\s*Sex\s*Stories\s*"#,
-            with: " ",
-            options: .regularExpression
-        )
-        
-        cleaned = cleaned
-            .replacingOccurrences(of: " {2,}", with: " ", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-            .trimmingCharacters(in: CharacterSet(charactersIn: "-–— "))
-        
-        return cleaned.isEmpty ? title : cleaned
-    }
-
-    func startMonitoring() {
-        monitor.pathUpdateHandler = { [weak self] path in
-            DispatchQueue.main.async {
-                self?.isConnected = path.status == .satisfied
-                if path.status == .satisfied {
-                    Task {
-                        await self?.loadSectionsIfNeeded()
-                    }
-                }
-            }
-        }
-        monitor.start(queue: queue)
-    }
-
-    func stopMonitoring() {
-        monitor.cancel()
-    }
-
-    private func normalizeURL(_ href: String) -> String {
-        guard !href.isEmpty else { return "" }
-        if href.hasPrefix("http") { return href }
-        if href.hasPrefix("/") { return storiesURL + href }
-        return storiesURL + "/" + href
-    }
-
-    // MARK: - Updated Robust Parser (April 2026 - Fixed Category Cleaning)
+    // MARK: - Parsers
 
     private func parseSectionsWithStories(html: String) -> [Section] {
-        var sections = [Section]()
+        var sections: [Section] = []
         
         do {
             let doc = try SwiftSoup.parse(html)
             let sectionHeaders = try doc.select("h3.notice")
-            
-            guard !sectionHeaders.isEmpty else {
-                print("Parse warning: No h3.notice headers found")
-                return []
-            }
             
             for header in sectionHeaders {
                 let sectionTitle = try header.text().trimmingCharacters(in: .whitespacesAndNewlines)
                 var stories: [Story] = []
                 
                 guard let storiesList = try header.nextElementSibling()?.select("ul.stories_list").first() else {
-                    print("Parse warning: No stories_list ul found for section '\(sectionTitle)'")
                     continue
                 }
                 
                 let items = try storiesList.select("li")
                 
                 for item in items {
-                    // Skip "More..." links
                     if try item.select("a").first()?.text().lowercased().contains("more") == true {
                         continue
                     }
                     
-                    // Title & URL
                     let titleLink = try item.select("h4 a").first()
                     let titleRaw = try titleLink?.text() ?? ""
                     let title = trimmedTitle(titleRaw)
                     let storyURL = normalizeURL(try titleLink?.attr("href") ?? "")
                     
-                    // Author
                     let authorLink = try item.select("h4 a").last()
                     let author = try authorLink?.text() ?? "Unknown"
                     
-                    // Description
                     let descriptionRaw = try item.select("p").text()
                     let description = removeHtmlEntities(in: descriptionRaw)
                     
-                    // Metadata
                     let strongs = try item.select("strong").array()
                     let rating = strongs.count > 0 ? try strongs[0].text() : ""
                     let timesRead = strongs.count > 1 ? try strongs[1].text() : ""
                     let postedDate = strongs.count > 2 ? try strongs[2].text() : ""
                     
-                    // ==================== IMPROVED CATEGORY PARSING ====================
-                    var categories: [String] = []
-                    
-                    // Get all direct text nodes
-                    let ownTextNodes = item.textNodes()
-                    if !ownTextNodes.isEmpty {
-                        // The categories usually appear in the last text node after the metadata
-                        let lastText = ownTextNodes.last?.text() ?? ""
-                        
-                        // Split by comma and clean
-                        let rawCategories = lastText
-                            .components(separatedBy: ",")
-                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                            .filter { !$0.isEmpty }
-                        
-                        // Final filter to remove any metadata pollution
-                        categories = rawCategories.filter { category in
-                            let lower = category.lowercased()
-                            return !lower.contains("rated") &&
-                                   !lower.contains("read") &&
-                                   !lower.contains("posted") &&
-                                   !lower.contains("times") &&
-                                   !lower.contains("ago")
-                        }
-                    }
-                    // =================================================================
+                    // Clean category extraction
+                    let categories = extractCategories(from: item)
                     
                     let story = Story(
                         title: title,
@@ -389,11 +270,152 @@ final class ScrapperViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Error parsing HTML: \(error)")
+            print("Error parsing stories: \(error)")
         }
         
-        let totalStories = sections.reduce(0) { $0 + $1.stories.count }
-        print("✅ Successfully parsed \(sections.count) sections with \(totalStories) stories")
+        print("✅ Parsed \(sections.count) story sections")
         return sections
+    }
+
+    private func parseMenuFromHTML(html: String) -> [MenuSection] {
+        var menuSections: [MenuSection] = []
+        
+        do {
+            let doc = try SwiftSoup.parse(html)
+            let menuDiv = try doc.select("div#menu").first()
+            guard let menu = menuDiv else { return [] }
+            
+            let headings = try menu.select("h2")
+            
+            for heading in headings {
+                let sectionTitle = try heading.text().trimmingCharacters(in: .whitespacesAndNewlines)
+                guard sectionTitle == "Genres" || sectionTitle == "Themes" else { continue }
+                
+                guard let ul = try heading.nextElementSibling(), try ul.tagName() == "ul" else { continue }
+                
+                let listItems = try ul.select("li")
+                var menuItems: [MenuItem] = []
+                
+                for li in listItems {
+                    if let link = try li.select("a").first() {
+                        let name = try link.text().trimmingCharacters(in: .whitespacesAndNewlines)
+                        let href = try link.attr("href")
+                        let fullURL = normalizeURL(href)
+                        
+                        let fullText = try li.text()
+                        let count = fullText.range(of: #"\(\d+\)"#, options: .regularExpression)
+                            .map { String(fullText[$0]) }
+                        
+                        let item = MenuItem(name: name, url: fullURL, count: count)
+                        menuItems.append(item)
+                    }
+                }
+                
+                if !menuItems.isEmpty {
+                    menuSections.append(MenuSection(title: sectionTitle, items: menuItems))
+                }
+            }
+        } catch {
+            print("Error parsing menu: \(error)")
+        }
+        
+        print("✅ Parsed \(menuSections.count) menu sections (Genres & Themes)")
+        return menuSections
+    }
+
+    private func extractCategories(from item: Element) -> [String] {
+        guard let lastText = try? item.textNodes().last?.text() else { return [] }
+        
+        return lastText
+            .components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .filter { category in
+                let lower = category.lowercased()
+                return !lower.contains("rated") &&
+                       !lower.contains("read") &&
+                       !lower.contains("posted") &&
+                       !lower.contains("times") &&
+                       !lower.contains("ago")
+            }
+    }
+
+    // MARK: - Helpers
+
+    func removeHtmlEntities(in text: String) -> String {
+        var cleaned = text
+        let replacements = [
+            "&laquo;": "", "&raquo;": "", "«": "", "»": "",
+            "&hellip;": "...", "&ndash;": "-", "&mdash;": "-",
+            "&amp;": "&", "&#039;": "'", "&quot;": "\""
+        ]
+        for (entity, replacement) in replacements {
+            cleaned = cleaned.replacingOccurrences(of: entity, with: replacement)
+        }
+        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func trimmedTitle(_ title: String) -> String {
+        var cleaned = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        cleaned = cleaned.replacingOccurrences(
+            of: #"\s*[-–—]?\s*Sex\s*Stories\s*"#,
+            with: " ",
+            options: .regularExpression
+        )
+        cleaned = cleaned
+            .replacingOccurrences(of: " {2,}", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "-–— "))
+        return cleaned.isEmpty ? title : cleaned
+    }
+
+    private func normalizeURL(_ href: String) -> String {
+        guard !href.isEmpty else { return "" }
+        if href.hasPrefix("http") { return href }
+        if href.hasPrefix("/") { return storiesURL + href }
+        return storiesURL + "/" + href
+    }
+
+    // MARK: - Network Monitoring
+
+    func startMonitoring() {
+        monitor.pathUpdateHandler = { [weak self] path in
+            DispatchQueue.main.async {
+                self?.isConnected = path.status == .satisfied
+                if path.status == .satisfied {
+                    Task { await self?.loadSectionsIfNeeded() }
+                }
+            }
+        }
+        monitor.start(queue: queue)
+    }
+
+    func stopMonitoring() {
+        monitor.cancel()
+    }
+
+    // MARK: - Filtering
+
+    var allKnownCategories: [StoryCategory] {
+        let categories = sections.flatMap { $0.stories.flatMap { $0.themes } }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return Array(Set(categories.map(StoryCategory.init(name:)))).sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    func filteredStories(in section: Section) -> [Story] {
+        section.stories.filter { story in
+            if !storyFilterState.selectedCategories.isEmpty {
+                let storySet = Set(story.themes.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+                if storySet.isDisjoint(with: storyFilterState.selectedCategories) { return false }
+            }
+            
+            if !storyFilterState.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                let search = storyFilterState.searchText.lowercased()
+                let haystack = [story.title, story.author, story.description, story.themes.joined(separator: " ")].joined(separator: " ").lowercased()
+                if !haystack.contains(search) { return false }
+            }
+            return true
+        }
     }
 }
