@@ -75,6 +75,7 @@ struct StoryReaderView: View {
     @StateObject private var viewModel: StoryReaderViewModel
     @EnvironmentObject var scrapper: ScrapperViewModel
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @State private var didConfigureCache = false
     @State private var didRestoreScroll = false
     @State private var showingReaderSettings = false
@@ -199,9 +200,11 @@ struct StoryReaderView: View {
                 .coordinateSpace(name: "storyScroll")
             }
             .background(scrapper.backgroundColor.ignoresSafeArea())
+            .navigationBarBackButtonHidden(true)
             .sheet(isPresented: $showingReaderSettings) {
                 ReaderSettingsSheet(viewModel: viewModel, scrapper: scrapper)
-                    .presentationDetents([.medium, .large])
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
             .onPreferenceChange(ScrollAnchorPreferenceKey.self) { positions in
                 let topAnchor = positions
@@ -247,6 +250,18 @@ struct StoryReaderView: View {
 
     private var readerHeader: some View {
         HStack(spacing: 10) {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 27, height: 27)
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(scrapper.accentColor, scrapper.primaryColor)
+            }
+            .buttonStyle(.plain)
+
             Text(viewModel.story.title)
                 .font(.headline)
                 .foregroundStyle(scrapper.primaryColor)
@@ -317,55 +332,100 @@ private struct ReaderSettingsSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
-            Form {
-                SwiftUI.Section("Theme") {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                header
+
+                themedCard(title: "Theme") {
                     Picker("Theme", selection: $scrapper.selectedTheme) {
                         ForEach(AppTheme.allCases) { theme in
                             Text(theme.label).tag(theme)
                         }
                     }
+                    .pickerStyle(.menu)
+                    .tint(scrapper.accentColor)
+                    .foregroundStyle(scrapper.accentColor)
                 }
 
-                SwiftUI.Section("Font") {
-                    Picker("Font Family", selection: $scrapper.readerFontFamily) {
-                        ForEach(ReaderFontFamily.allCases) { family in
-                            Text(family.label).tag(family)
+                themedCard(title: "Font") {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Picker("Font Family", selection: $scrapper.readerFontFamily) {
+                            ForEach(ReaderFontFamily.allCases) { family in
+                                Text(family.label).tag(family)
+                            }
                         }
-                    }
+                        .pickerStyle(.menu)
+                        .tint(scrapper.accentColor)
+                        .foregroundStyle(scrapper.accentColor)
 
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("Font Size")
-                            Spacer()
-                            Text("\(Int(scrapper.fontSize)) pt")
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Font Size")
+                                Spacer()
+                                Text("\(Int(scrapper.fontSize)) pt")
+                                    .foregroundStyle(scrapper.secondaryColor)
+                            }
+                            Slider(value: $scrapper.fontSize, in: 14...32, step: 1)
+                                .tint(scrapper.accentColor)
                         }
-                        Slider(value: $scrapper.fontSize, in: 14...32, step: 1)
-                    }
 
-                    VStack(alignment: .leading) {
-                        HStack {
-                            Text("Line Spacing")
-                            Spacer()
-                            Text("\(Int(scrapper.readerLineSpacing))")
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("Line Spacing")
+                                Spacer()
+                                Text("\(Int(scrapper.readerLineSpacing))")
+                                    .foregroundStyle(scrapper.secondaryColor)
+                            }
+                            Slider(value: $scrapper.readerLineSpacing, in: 0...14, step: 1)
+                                .tint(scrapper.accentColor)
                         }
-                        Slider(value: $scrapper.readerLineSpacing, in: 0...14, step: 1)
                     }
                 }
 
-                SwiftUI.Section("Reading") {
+                themedCard(title: "Reading") {
                     Text("Progress, favorites, and library sync are handled from the library now.")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(scrapper.secondaryColor)
                 }
             }
-            .navigationTitle("Reader Settings")
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
-            }
+            .padding()
         }
+        .background(scrapper.backgroundColor.ignoresSafeArea())
+        .foregroundStyle(scrapper.primaryColor)
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Reader Settings")
+                    .font(.largeTitle.bold())
+                    .foregroundStyle(scrapper.primaryColor)
+                Spacer()
+                Button("Done") { dismiss() }
+                    .foregroundStyle(scrapper.accentColor)
+            }
+            Text("Adjust appearance and reading preferences.")
+                .font(.callout)
+                .foregroundStyle(scrapper.secondaryColor)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func themedCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(scrapper.primaryColor)
+            content()
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(scrapper.backgroundColor.opacity(0.96))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+        )
     }
 }
