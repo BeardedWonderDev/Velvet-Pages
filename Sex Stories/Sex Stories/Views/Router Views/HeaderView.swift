@@ -64,8 +64,8 @@ struct HeaderView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            scrapper.backgroundColor.opacity(0.96),
-                            scrapper.backgroundColor.opacity(0.84)
+                            scrapper.surfaceColor,
+                            scrapper.elevatedSurfaceColor.opacity(scrapper.selectedTheme == .night ? 0.92 : 0.98)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -73,9 +73,42 @@ struct HeaderView: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+                        .stroke(scrapper.borderColor, lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(scrapper.softShadowOpacity), radius: 10, x: 0, y: 4)
+        }
+    }
+
+    private func controlButton(systemName: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(scrapper.primaryColor)
+                .frame(width: 34, height: 34)
+                .background(
+                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                        .fill(scrapper.controlFillColor)
                 )
         }
+        .buttonStyle(.plain)
+    }
+}
+-    }
+-
+-    private func controlButton(systemName: String, action: @escaping () -> Void) -> some View {
+-        Button(action: action) {
+-            Image(systemName: systemName)
+-                .font(.system(size: 16, weight: .semibold))
+-                .foregroundStyle(scrapper.primaryColor)
+-                .frame(width: 34, height: 34)
+-                .background(
+-                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+-                        .fill(scrapper.primaryColor.opacity(0.08))
+-                )
+-        }
+-        .buttonStyle(.plain)
+-    }
+-}
     }
 
     private func controlButton(systemName: String, action: @escaping () -> Void) -> some View {

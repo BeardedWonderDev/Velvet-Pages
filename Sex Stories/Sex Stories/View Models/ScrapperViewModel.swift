@@ -137,6 +137,43 @@ final class ScrapperViewModel: ObservableObject {
     @Published var accentColor: Color
     @Published var backgroundColor: Color
 
+    var surfaceColor: Color {
+        backgroundColor.opacity(selectedTheme == .night ? 0.92 : 0.96)
+    }
+
+    var elevatedSurfaceColor: Color {
+        switch selectedTheme {
+        case .night:
+            return Color(red: 0.14, green: 0.15, blue: 0.22)
+        case .sepia:
+            return Color(red: 0.98, green: 0.93, blue: 0.83)
+        case .paper:
+            return Color(red: 0.99, green: 0.98, blue: 0.96)
+        case .light:
+            return .white
+        }
+    }
+
+    var mutedSurfaceColor: Color {
+        primaryColor.opacity(selectedTheme == .night ? 0.08 : 0.06)
+    }
+
+    var borderColor: Color {
+        primaryColor.opacity(selectedTheme == .night ? 0.12 : 0.08)
+    }
+
+    var selectionFillColor: Color {
+        accentColor.opacity(selectedTheme == .night ? 0.18 : 0.14)
+    }
+
+    var controlFillColor: Color {
+        primaryColor.opacity(selectedTheme == .night ? 0.10 : 0.08)
+    }
+
+    var softShadowOpacity: Double {
+        selectedTheme == .night ? 0.20 : 0.08
+    }
+
     init() {
         let defaults = UserDefaults.standard
         let initialTheme = AppTheme(rawValue: defaults.string(forKey: "selectedTheme") ?? AppTheme.paper.rawValue) ?? .paper

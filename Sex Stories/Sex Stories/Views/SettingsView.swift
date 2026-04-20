@@ -85,7 +85,7 @@ struct SettingsView: View {
             }
             .padding()
         }
-        .background(scrapper.backgroundColor.ignoresSafeArea())
+        .background(scrapper.surfaceColor.ignoresSafeArea())
         .foregroundStyle(scrapper.primaryColor)
     }
 
@@ -112,11 +112,11 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.08 : 0.12))
+                .fill(scrapper.mutedSurfaceColor)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(scrapper.primaryColor.opacity(0.12), lineWidth: 1)
+                .stroke(scrapper.borderColor, lineWidth: 1)
         )
     }
 }

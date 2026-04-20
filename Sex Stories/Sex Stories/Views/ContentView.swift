@@ -91,7 +91,7 @@ struct SectionView: View {
     var section: Section
 
     private var cardBackground: Color {
-        scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.10 : 0.06)
+        scrapper.mutedSurfaceColor
     }
 
     var body: some View {
@@ -143,7 +143,7 @@ struct SectionView: View {
 
             Text(story.description)
                 .font(.callout)
-                .foregroundStyle(scrapper.selectedTheme == .night ? Color.white.opacity(0.88) : scrapper.primaryColor.opacity(0.85))
+                .foregroundStyle(scrapper.secondaryColor)
                 .lineLimit(3)
 
             if !story.themes.isEmpty {
@@ -160,7 +160,7 @@ struct SectionView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+                .stroke(scrapper.borderColor, lineWidth: 1)
         )
     }
 }

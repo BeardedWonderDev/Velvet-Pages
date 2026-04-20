@@ -136,7 +136,7 @@ struct SidebarView: View {
         }
         .scrollIndicators(.hidden)
         .scrollContentBackground(.hidden)
-        .background(scrapper.backgroundColor.opacity(0.92).ignoresSafeArea())
+        .background(scrapper.surfaceColor.ignoresSafeArea())
         .frame(width: Self.sidebarWidth)
         .onChange(of: scrapper.sections.count) { _, newValue in
             if selectedSectionIndex >= newValue {
@@ -150,7 +150,7 @@ struct SidebarView: View {
         HStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isSelected ? scrapper.accentColor.opacity(0.14) : scrapper.primaryColor.opacity(0.06))
+                    .fill(isSelected ? scrapper.selectionFillColor : scrapper.mutedSurfaceColor)
                 Image(systemName: systemImage)
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(isSelected ? scrapper.accentColor : scrapper.secondaryColor)
@@ -182,7 +182,7 @@ struct SidebarView: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(scrapper.primaryColor.opacity(0.10), lineWidth: 1)
+                            .strokeBorder(scrapper.borderColor, lineWidth: 1)
                     )
                     .matchedGeometryEffect(id: "TAB", in: animation)
             }
@@ -202,7 +202,7 @@ struct SidebarView: View {
                 HStack(spacing: 10) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(scrapper.primaryColor.opacity(0.06))
+                            .fill(scrapper.controlFillColor)
                         Image(systemName: systemImage)
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(scrapper.secondaryColor)
@@ -247,7 +247,7 @@ struct SidebarView: View {
     private func sidebarSubItem(title: String, count: String?) -> some View {
         HStack(spacing: 8) {
             Circle()
-                .fill(scrapper.secondaryColor.opacity(0.6))
+                .fill(scrapper.secondaryColor.opacity(scrapper.selectedTheme == .night ? 0.65 : 0.55))
                 .frame(width: 5, height: 5)
 
             Text(title)
