@@ -108,7 +108,7 @@ struct BrowsePageView: View {
 
             Text(story.description)
                 .font(.callout)
-                .foregroundStyle(scrapper.selectedTheme == .night ? Color.white.opacity(0.88) : scrapper.primaryColor.opacity(0.85))
+                .foregroundStyle(scrapper.secondaryColor)
                 .lineLimit(3)
 
             if !story.themes.isEmpty {
@@ -121,11 +121,11 @@ struct BrowsePageView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.10 : 0.06))
+                .fill(scrapper.mutedSurfaceColor)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(scrapper.primaryColor.opacity(0.08), lineWidth: 1)
+                .stroke(scrapper.borderColor, lineWidth: 1)
         )
     }
 }

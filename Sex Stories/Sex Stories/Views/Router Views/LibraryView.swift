@@ -44,7 +44,7 @@ struct LibraryView: View {
                 }
 
                 if !favoriteStories.isEmpty {
-                    sectionBlock(title: "Favorites", subtitle: "Saved stories for quick access.", accent: .pink.opacity(0.18)) {
+                    sectionBlock(title: "Favorites", subtitle: "Saved stories for quick access.", accent: scrapper.accentColor.opacity(0.18)) {
                         storyCarousel(stories: favoriteStories.prefix(6), card: favoriteCard)
                     }
                 } else {
@@ -112,14 +112,14 @@ struct LibraryView: View {
 
     private func storyCard(snapshot: CachedStorySnapshot, isFavorite: Bool, favoriteTint: Color, treatment: CardTreatment) -> some View {
         let progress = max(0, min(1, snapshot.lastReadProgress))
-        let titleTint: Color = treatment == .favorite ? scrapper.primaryColor : scrapper.primaryColor
+        let titleTint: Color = scrapper.primaryColor
         let cardFill: some ShapeStyle = treatment == .continueReading
             ? AnyShapeStyle(.linearGradient(
-                colors: [scrapper.backgroundColor.opacity(0.98), scrapper.backgroundColor.opacity(0.90)],
+                colors: [scrapper.surfaceColor, scrapper.elevatedSurfaceColor.opacity(scrapper.selectedTheme == .night ? 0.96 : 0.98)],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             ))
-            : AnyShapeStyle(scrapper.backgroundColor.opacity(0.96))
+            : AnyShapeStyle(scrapper.mutedSurfaceColor)
 
         return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 10) {
@@ -146,7 +146,7 @@ struct LibraryView: View {
                         .frame(width: 32, height: 32)
                         .background(
                             Circle()
-                                .fill(isFavorite ? favoriteTint.opacity(0.12) : scrapper.primaryColor.opacity(0.04))
+                                .fill(isFavorite ? favoriteTint.opacity(0.12) : scrapper.controlFillColor)
                         )
                 }
                 .buttonStyle(.plain)
@@ -182,7 +182,7 @@ struct LibraryView: View {
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .fill(cardFill)
-                .shadow(color: .black.opacity(scrapper.selectedTheme == .night ? 0.18 : 0.06), radius: 10, x: 0, y: 5)
+                .shadow(color: scrapper.primaryColor.opacity(scrapper.softShadowOpacity), radius: 10, x: 0, y: 5)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -253,7 +253,7 @@ struct LibraryView: View {
             RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(
                     LinearGradient(
-                        colors: [accent, scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.04 : 0.02)],
+                        colors: [accent, scrapper.surfaceColor.opacity(scrapper.selectedTheme == .night ? 0.96 : 0.98)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
@@ -293,8 +293,8 @@ struct LibraryView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.06 : 0.04),
-                            scrapper.primaryColor.opacity(scrapper.selectedTheme == .night ? 0.03 : 0.02)
+                            scrapper.mutedSurfaceColor,
+                            scrapper.surfaceColor.opacity(scrapper.selectedTheme == .night ? 0.96 : 0.98)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -348,7 +348,7 @@ struct LibraryView: View {
                     LinearGradient(
                         colors: [
                             tint.opacity(0.10),
-                            scrapper.backgroundColor.opacity(0.98)
+                            scrapper.surfaceColor.opacity(0.98)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

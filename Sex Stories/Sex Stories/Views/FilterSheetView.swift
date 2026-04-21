@@ -111,6 +111,8 @@ struct FilterSheetView: View {
 }
 
 struct CategoryChip: View {
+    @EnvironmentObject var scrapper: ScrapperViewModel
+    
     let title: String
     let isSelected: Bool
     let accentColor: Color

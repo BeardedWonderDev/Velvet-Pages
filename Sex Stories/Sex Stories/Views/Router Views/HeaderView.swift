@@ -75,7 +75,7 @@ struct HeaderView: View {
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
                         .stroke(scrapper.borderColor, lineWidth: 1)
                 )
-                .shadow(color: .black.opacity(scrapper.softShadowOpacity), radius: 10, x: 0, y: 4)
+                .shadow(color: scrapper.primaryColor.opacity(scrapper.softShadowOpacity), radius: 10, x: 0, y: 4)
         }
     }
 
@@ -88,38 +88,6 @@ struct HeaderView: View {
                 .background(
                     RoundedRectangle(cornerRadius: 11, style: .continuous)
                         .fill(scrapper.controlFillColor)
-                )
-        }
-        .buttonStyle(.plain)
-    }
-}
--    }
--
--    private func controlButton(systemName: String, action: @escaping () -> Void) -> some View {
--        Button(action: action) {
--            Image(systemName: systemName)
--                .font(.system(size: 16, weight: .semibold))
--                .foregroundStyle(scrapper.primaryColor)
--                .frame(width: 34, height: 34)
--                .background(
--                    RoundedRectangle(cornerRadius: 11, style: .continuous)
--                        .fill(scrapper.primaryColor.opacity(0.08))
--                )
--        }
--        .buttonStyle(.plain)
--    }
--}
-    }
-
-    private func controlButton(systemName: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(scrapper.primaryColor)
-                .frame(width: 34, height: 34)
-                .background(
-                    RoundedRectangle(cornerRadius: 11, style: .continuous)
-                        .fill(scrapper.primaryColor.opacity(0.08))
                 )
         }
         .buttonStyle(.plain)

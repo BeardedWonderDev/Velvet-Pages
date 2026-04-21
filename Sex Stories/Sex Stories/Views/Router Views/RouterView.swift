@@ -53,8 +53,8 @@ struct RouterView: View {
                     .offset(x: showSideBar ? 0 : -SidebarView.sidebarWidth)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background {
-                        Color.black
-                            .opacity(showSideBar ? 0.5 : 0)
+                        scrapper.primaryColor
+                            .opacity(showSideBar ? (scrapper.selectedTheme == .night ? 0.50 : 0.28) : 0)
                             .offset(x: showSideBar ? SidebarView.sidebarWidth : 0)
                             .ignoresSafeArea()
                             .onTapGesture {

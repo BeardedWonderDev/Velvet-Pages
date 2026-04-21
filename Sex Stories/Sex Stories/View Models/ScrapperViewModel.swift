@@ -32,8 +32,8 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var colors: (primary: Color, secondary: Color, accent: Color, background: Color) {
         switch self {
-        case .light:   return (.black, .secondary, .blue, .white)
-        case .sepia:   return (.black, .secondary, .brown, Color(red: 0.96, green: 0.92, blue: 0.84))
+        case .light:   return (.primary, .secondary, .blue, Color(uiColor: .systemBackground))
+        case .sepia:   return (.primary, .secondary, .brown, Color(red: 0.96, green: 0.92, blue: 0.84))
         case .night:   return (.white, Color.white.opacity(0.75), .mint, Color(red: 0.09, green: 0.10, blue: 0.14))
         case .paper:   return (.primary, .secondary, .teal, Color(red: 0.98, green: 0.97, blue: 0.94))
         }
@@ -150,7 +150,7 @@ final class ScrapperViewModel: ObservableObject {
         case .paper:
             return Color(red: 0.99, green: 0.98, blue: 0.96)
         case .light:
-            return .white
+            return Color(uiColor: .secondarySystemBackground)
         }
     }
 
