@@ -32,7 +32,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2B96309F2B143F14002E853B /* Sex Stories.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Sex Stories.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B96309F2B143F14002E853B /* Velvet Pages.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Velvet Pages.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B9630A22B143F14002E853B /* Sex_StoriesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Sex_StoriesApp.swift; sourceTree = "<group>"; };
 		2B9630A42B143F14002E853B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2B9630A62B143F15002E853B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -80,7 +80,7 @@
 		2B9630A02B143F14002E853B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2B96309F2B143F14002E853B /* Sex Stories.app */,
+				2B96309F2B143F14002E853B /* Velvet Pages.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -173,9 +173,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2B96309E2B143F14002E853B /* Sex Stories */ = {
+		2B96309E2B143F14002E853B /* Velvet Pages */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2B9630AE2B143F15002E853B /* Build configuration list for PBXNativeTarget "Sex Stories" */;
+			buildConfigurationList = 2B9630AE2B143F15002E853B /* Build configuration list for PBXNativeTarget "Velvet Pages" */;
 			buildPhases = (
 				2B96309B2B143F14002E853B /* Sources */,
 				2B96309C2B143F14002E853B /* Frameworks */,
@@ -185,12 +185,12 @@
 			);
 			dependencies = (
 			);
-			name = "Sex Stories";
+			name = "Velvet Pages";
 			packageProductDependencies = (
 				2B9630B22B143F52002E853B /* SwiftSoup */,
 			);
 			productName = "Sex Stories";
-			productReference = 2B96309F2B143F14002E853B /* Sex Stories.app */;
+			productReference = 2B96309F2B143F14002E853B /* Velvet Pages.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -224,7 +224,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2B96309E2B143F14002E853B /* Sex Stories */,
+				2B96309E2B143F14002E853B /* Velvet Pages */,
 			);
 		};
 /* End PBXProject section */
@@ -485,7 +485,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2B9630AE2B143F15002E853B /* Build configuration list for PBXNativeTarget "Sex Stories" */ = {
+		2B9630AE2B143F15002E853B /* Build configuration list for PBXNativeTarget "Velvet Pages" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2B9630AF2B143F15002E853B /* Debug */,
