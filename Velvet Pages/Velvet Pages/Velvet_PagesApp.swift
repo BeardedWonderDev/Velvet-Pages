@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct Sex_StoriesApp: App {
+struct Velvet_PagesApp: App {
     @StateObject private var scrapper = ScrapperViewModel()
     
     var body: some Scene {
