@@ -28,10 +28,7 @@ struct RouterView: View {
                     SidebarView()
                 }
 
-                VStack(alignment: .leading) {
-                    HeaderView()
-                        .padding(.horizontal, 10)
-
+                ZStack(alignment: .top) {
                     if showSettings {
                         SettingsView()
                     } else if scrapper.activeBrowsePage != nil {
@@ -41,6 +38,9 @@ struct RouterView: View {
                     } else {
                         ContentView(section: selectedSection)
                     }
+                    
+                    HeaderView()
+                        .padding(.horizontal, 10)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)

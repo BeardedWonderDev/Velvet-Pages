@@ -73,6 +73,7 @@ struct LibraryView: View {
                 }
             }
             .padding()
+            .padding(.top, 60)
         }
         .background(scrapper.backgroundColor.ignoresSafeArea())
     }

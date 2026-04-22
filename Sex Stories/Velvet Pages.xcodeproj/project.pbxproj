@@ -208,7 +208,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2B96309A2B143F14002E853B /* Build configuration list for PBXProject "Sex Stories" */;
+			buildConfigurationList = 2B96309A2B143F14002E853B /* Build configuration list for PBXProject "Velvet Pages" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -476,7 +476,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2B96309A2B143F14002E853B /* Build configuration list for PBXProject "Sex Stories" */ = {
+		2B96309A2B143F14002E853B /* Build configuration list for PBXProject "Velvet Pages" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2B9630AC2B143F15002E853B /* Debug */,

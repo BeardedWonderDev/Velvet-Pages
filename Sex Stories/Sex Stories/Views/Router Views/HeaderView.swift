@@ -34,62 +34,45 @@ struct HeaderView: View {
     }
 
     var body: some View {
-        HStack(spacing: 10) {
-            if !props.isiPad || (props.isiPad && !props.isLandscape) {
-                controlButton(systemName: "line.3.horizontal") {
-                    withAnimation(.easeInOut) {
-                        showSideBar.toggle()
+        GlassEffectContainer {
+            HStack(spacing: 10) {
+                if !props.isiPad || (props.isiPad && !props.isLandscape) {
+                    controlButton(systemName: "line.3.horizontal") {
+                        withAnimation(.easeInOut) {
+                            showSideBar.toggle()
+                        }
                     }
                 }
-            }
 
-            VStack(alignment: .center, spacing: 2) {
-                Text(headerTitle)
-                    .font(.title3.bold())
-                    .foregroundStyle(scrapper.primaryColor)
-                Text(headerSubtitle)
-                    .font(.caption)
-                    .foregroundStyle(scrapper.secondaryColor)
-            }
-            .frame(maxWidth: .infinity)
+                VStack(alignment: .center, spacing: 2) {
+                    Text(headerTitle)
+                        .font(.title3.bold())
+                        .foregroundStyle(scrapper.primaryColor)
+                    Text(headerSubtitle)
+                        .font(.caption)
+                        .foregroundStyle(scrapper.secondaryColor)
+                }
+                .frame(maxWidth: .infinity)
 
-            controlButton(systemName: "line.3.horizontal.decrease") {
-                showFilters.toggle()
+                controlButton(systemName: "line.3.horizontal.decrease") {
+                    showFilters.toggle()
+                }
             }
-        }
-        .padding(.horizontal, 15)
-        .padding(.vertical, 12)
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            scrapper.surfaceColor,
-                            scrapper.elevatedSurfaceColor.opacity(scrapper.selectedTheme == .night ? 0.92 : 0.98)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(scrapper.borderColor, lineWidth: 1)
-                )
-                .shadow(color: scrapper.primaryColor.opacity(scrapper.softShadowOpacity), radius: 10, x: 0, y: 4)
+            .padding(.horizontal, 15)
+            .padding(.vertical, 12)
+            .glassEffect(.clear)
         }
     }
 
     private func controlButton(systemName: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(size: 18, weight: .semibold))
                 .foregroundStyle(scrapper.primaryColor)
-                .frame(width: 34, height: 34)
-                .background(
-                    RoundedRectangle(cornerRadius: 11, style: .continuous)
-                        .fill(scrapper.controlFillColor)
-                )
+                .frame(width: 38, height: 38)
+                
         }
-        .buttonStyle(.plain)
+        .glassEffect(.clear.interactive())
+        .contentShape(Rectangle())
     }
 }
