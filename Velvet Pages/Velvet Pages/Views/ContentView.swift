@@ -19,7 +19,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if scrapper.isConnected {
-                if scrapper.isLoading && scrapper.sections.isEmpty {
+                if scrapper.isLoading && scrapper.sections.isEmpty && scrapper.libraryItems.isEmpty {
                     loadingState
                 } else if let loadError = scrapper.loadError {
                     errorState(message: loadError)
@@ -32,6 +32,8 @@ struct ContentView: View {
                 } else if let firstSection = scrapper.sections.first {
                     SectionView(section: firstSection)
                         .environmentObject(scrapper)
+                } else if !scrapper.libraryItems.isEmpty {
+                    libraryState
                 } else {
                     emptyState
                 }
@@ -49,6 +51,30 @@ struct ContentView: View {
                 .foregroundStyle(scrapper.secondaryColor)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(scrapper.backgroundColor.ignoresSafeArea())
+    }
+
+    private var libraryState: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("Library")
+                    .font(.largeTitle.bold())
+                    .foregroundStyle(scrapper.primaryColor)
+                ForEach(scrapper.filteredLibraryItems()) { item in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(item.title)
+                            .font(.headline)
+                        Text(item.metadata.author.isEmpty ? "Unknown author" : item.metadata.author)
+                            .font(.footnote)
+                            .foregroundStyle(scrapper.secondaryColor)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 16).fill(scrapper.mutedSurfaceColor))
+                }
+            }
+            .padding()
+        }
         .background(scrapper.backgroundColor.ignoresSafeArea())
     }
 

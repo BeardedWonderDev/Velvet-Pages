@@ -129,6 +129,7 @@ final class ScrapperViewModel: ObservableObject {
     @Published var sections: [Section] = []           // Homepage story sections
     @Published var menuSections: [MenuSection] = []   // Genres & Themes
     @Published var activeBrowsePage: BrowsePage?
+    @Published var libraryItems: [LibraryItem] = []
     @Published var isLoading: Bool = false
     @Published var hasLoaded: Bool = false
     @Published var loadError: String?
@@ -232,6 +233,22 @@ final class ScrapperViewModel: ObservableObject {
     }
 
     // MARK: - Loading
+
+    @MainActor
+    func loadLibraryIfNeeded(forceRefresh: Bool = false) async {
+        guard !loadInProgress else { return }
+        guard forceRefresh || libraryItems.isEmpty else { return }
+
+        loadInProgress = true
+        isLoading = true
+        loadError = nil
+        defer {
+            isLoading = false
+            loadInProgress = false
+        }
+
+        libraryItems = sections.flatMap { $0.stories }.map { $0.unifiedItem }
+    }
 
     @MainActor
     func loadSectionsIfNeeded(forceRefresh: Bool = false) async {
