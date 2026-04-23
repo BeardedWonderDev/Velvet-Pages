@@ -30,3 +30,17 @@ The implementation should be optimized for:
 - If the app needs authenticated AO3 access later, that should be treated as a separate enhancement rather than a prerequisite for the current refactor.
 - Any leftover single-source assumptions in UI, storage, or reader code should be considered refactor targets rather than preserved behaviors.
 - The current source may be represented as a flattened single-chapter work in the unified model.
+
+## Recent commit log
+
+- `4efb7cf` — `Refactor toward library-first multi-source architecture`
+  - Added shared foundation models: `SourceType`, `Chapter`, `WorkMetadata`, `LibraryItem`
+  - Added provider abstraction: `StorySourceProvider`, `CurrentSourceProvider`, `AO3Provider`, `SourceRegistry`
+  - Began shifting the app entry/router toward a library-first shell
+  - Added a bridge from legacy `Story` data into the unified model
+
+- `fb31ca9` — `Continue library-first app refactor`
+  - Added a `libraryItems` path to `ScrapperViewModel`
+  - Added `loadLibraryIfNeeded(forceRefresh:)`
+  - Added a filtered library bridge for the new unified model
+  - Updated `ContentView` so the app can surface a basic library state when browse/section states are absent
