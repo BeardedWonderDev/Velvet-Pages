@@ -44,3 +44,10 @@ The implementation should be optimized for:
   - Added `loadLibraryIfNeeded(forceRefresh:)`
   - Added a filtered library bridge for the new unified model
   - Updated `ContentView` so the app can surface a basic library state when browse/section states are absent
+
+- `7ec003b` — `Wire library view to unified model`
+  - Reworked `LibraryView` to render `LibraryItem` data instead of legacy cached snapshots
+  - Added unified library filtering in `ScrapperViewModel`
+  - Deduped unified library items before display
+  - Updated category aggregation to prefer unified metadata when available
+  - Added the new shared model/provider files to the Xcode project so the refactor compiles as part of the app target

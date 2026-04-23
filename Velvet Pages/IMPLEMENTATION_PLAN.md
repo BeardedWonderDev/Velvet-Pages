@@ -52,6 +52,11 @@ The app should present:
 
 ## Current state summary
 
+### Latest completed slice
+- Library entrypoint work is underway: `LibraryView` has been reworked around unified `LibraryItem` data rather than legacy cached story snapshots.
+- `ScrapperViewModel` now exposes unified library filtering and dedupes library items before rendering.
+- Shared model/provider files are now in the Xcode project and the current refactor commit is `7ec003b` (`Wire library view to unified model`).
+
 ### Existing app shape
 Velvet Pages currently uses:
 - one `Story` model
