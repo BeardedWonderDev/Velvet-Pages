@@ -38,6 +38,7 @@ enum StoryReaderBlock: Hashable {
 final class StoryReaderViewModel: ObservableObject {
     
     @Published var story: Story
+    @Published var libraryItem: LibraryItem?
     @Published var blocks: [StoryReaderBlock] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
@@ -49,6 +50,20 @@ final class StoryReaderViewModel: ObservableObject {
     
     init(story: Story) {
         self.story = story
+    }
+
+    init(libraryItem: LibraryItem) {
+        self.libraryItem = libraryItem
+        self.story = Story(
+            title: libraryItem.title,
+            author: libraryItem.metadata.author,
+            description: libraryItem.metadata.summary,
+            rating: libraryItem.metadata.rating ?? "",
+            timesRead: "",
+            postedDate: libraryItem.metadata.lastUpdated.map { DateFormatter.localizedString(from: $0, dateStyle: .medium, timeStyle: .none) } ?? "",
+            themes: libraryItem.metadata.tags,
+            url: libraryItem.metadata.sourceURL ?? ""
+        )
     }
     
     func configureCacheStore(_ modelContext: ModelContext) {

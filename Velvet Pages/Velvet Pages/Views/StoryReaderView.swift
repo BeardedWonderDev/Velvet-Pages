@@ -80,9 +80,13 @@ struct StoryReaderView: View {
     @State private var didRestoreScroll = false
     @State private var showingReaderSettings = false
     @State private var progress: Double = 0
-
+    
     init(story: Story) {
         _viewModel = StateObject(wrappedValue: StoryReaderViewModel(story: story))
+    }
+
+    init(libraryItem: LibraryItem) {
+        _viewModel = StateObject(wrappedValue: StoryReaderViewModel(libraryItem: libraryItem))
     }
 
     var body: some View {

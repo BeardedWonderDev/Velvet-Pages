@@ -33,7 +33,8 @@ struct ContentView: View {
                     SectionView(section: firstSection)
                         .environmentObject(scrapper)
                 } else if !scrapper.libraryItems.isEmpty {
-                    libraryState
+                    LibraryView()
+                        .environmentObject(scrapper)
                 } else {
                     emptyState
                 }
@@ -51,30 +52,6 @@ struct ContentView: View {
                 .foregroundStyle(scrapper.secondaryColor)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(scrapper.backgroundColor.ignoresSafeArea())
-    }
-
-    private var libraryState: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Library")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(scrapper.primaryColor)
-                ForEach(scrapper.filteredLibraryItems()) { item in
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(item.title)
-                            .font(.headline)
-                        Text(item.metadata.author.isEmpty ? "Unknown author" : item.metadata.author)
-                            .font(.footnote)
-                            .foregroundStyle(scrapper.secondaryColor)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 16).fill(scrapper.mutedSurfaceColor))
-                }
-            }
-            .padding()
-        }
         .background(scrapper.backgroundColor.ignoresSafeArea())
     }
 

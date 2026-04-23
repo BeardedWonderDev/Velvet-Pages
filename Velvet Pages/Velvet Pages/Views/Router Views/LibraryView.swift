@@ -15,6 +15,12 @@ struct LibraryView: View {
         scrapper.filteredLibraryItems()
     }
 
+    private var sourceBreakdown: [(SourceType, Int)] {
+        Dictionary(grouping: libraryItems, by: { $0.source })
+            .map { ($0.key, $0.value.count) }
+            .sorted { $0.0.displayName < $1.0.displayName }
+    }
+
     private var continueReadingItems: [LibraryItem] {
         libraryItems
             .filter { $0.lastReadProgress > 0 }
@@ -35,7 +41,7 @@ struct LibraryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                header
+                librarySummary
 
                 if !continueReadingItems.isEmpty {
                     sectionBlock(title: "Continue Reading", subtitle: "Pick up where you left off.", accent: scrapper.accentColor.opacity(0.20)) {
@@ -54,7 +60,7 @@ struct LibraryView: View {
                 }
 
                 if !scrapper.sections.isEmpty {
-                    sectionBlock(title: "Browse", subtitle: "Open a section to explore the legacy source.", accent: scrapper.primaryColor.opacity(0.10)) {
+                    sectionBlock(title: "Legacy Browse", subtitle: "The current source still lives here while the provider layer grows.", accent: scrapper.primaryColor.opacity(0.10)) {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                             ForEach(Array(scrapper.sections.enumerated()), id: \.offset) { index, section in
                                 Button {
@@ -75,18 +81,6 @@ struct LibraryView: View {
             .padding(.top, 60)
         }
         .background(scrapper.backgroundColor.ignoresSafeArea())
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Library")
-                .font(.largeTitle.bold())
-                .foregroundStyle(scrapper.primaryColor)
-            Text("Your unified reading library across sources.")
-                .font(.callout)
-                .foregroundStyle(scrapper.secondaryColor)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func filteredLibraryItems() -> [LibraryItem] {
@@ -117,17 +111,51 @@ struct LibraryView: View {
         }
     }
 
-    private func resolveStory(for item: LibraryItem) -> Story {
-        Story(
-            title: item.title,
-            author: item.metadata.author,
-            description: item.metadata.summary,
-            rating: item.metadata.rating ?? "",
-            timesRead: "",
-            postedDate: item.metadata.lastUpdated.map { DateFormatter.localizedString(from: $0, dateStyle: .medium, timeStyle: .none) } ?? "",
-            themes: item.metadata.tags,
-            url: item.metadata.sourceURL ?? ""
-        )
+    private func librarySummaryCard(title: String, value: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(scrapper.secondaryColor)
+            Text(value)
+                .font(.title3.bold())
+                .foregroundStyle(scrapper.primaryColor)
+            Text(subtitle)
+                .font(.caption2)
+                .foregroundStyle(scrapper.secondaryColor)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(scrapper.mutedSurfaceColor))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(scrapper.borderColor, lineWidth: 1))
+    }
+
+    private var librarySummary: some View {
+        let total = libraryItems.count
+        let favorites = favoriteItems.count
+        let continueCount = continueReadingItems.count
+        let sources = sourceBreakdown.map { "\($0.0.displayName): \($0.1)" }.joined(separator: " • ")
+
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("Library at a glance")
+                .font(.title3.bold())
+                .foregroundStyle(scrapper.primaryColor)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 170), spacing: 12)], spacing: 12) {
+                librarySummaryCard(title: "Works", value: "\(total)", subtitle: "Unified items across sources")
+                librarySummaryCard(title: "Favorites", value: "\(favorites)", subtitle: "Saved for quick access")
+                librarySummaryCard(title: "Continue", value: "\(continueCount)", subtitle: "In-progress reads")
+            }
+
+            if !sources.isEmpty {
+                Text(sources)
+                    .font(.caption)
+                    .foregroundStyle(scrapper.secondaryColor)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(scrapper.surfaceColor))
+        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(scrapper.borderColor, lineWidth: 1))
     }
 
     private func toggleFavorite(for item: LibraryItem) {
@@ -210,7 +238,7 @@ struct LibraryView: View {
 
     private func continueReadingCard(item: LibraryItem) -> some View {
         NavigationLink {
-            StoryReaderView(story: resolveStory(for: item))
+            StoryReaderView(libraryItem: item)
                 .environmentObject(scrapper)
         } label: {
             storyCard(item: item, isFavorite: item.isFavorite, favoriteTint: .red, treatment: .continueReading)
@@ -220,7 +248,7 @@ struct LibraryView: View {
 
     private func favoriteCard(item: LibraryItem) -> some View {
         NavigationLink {
-            StoryReaderView(story: resolveStory(for: item))
+            StoryReaderView(libraryItem: item)
                 .environmentObject(scrapper)
         } label: {
             storyCard(item: item, isFavorite: true, favoriteTint: .pink, treatment: .favorite)
