@@ -33,17 +33,15 @@ The implementation should be optimized for:
 
 ## Recent commit log
 
-- `4efb7cf` — `Refactor toward library-first multi-source architecture`
-  - Added shared foundation models: `SourceType`, `Chapter`, `WorkMetadata`, `LibraryItem`
-  - Added provider abstraction: `StorySourceProvider`, `CurrentSourceProvider`, `AO3Provider`, `SourceRegistry`
-  - Began shifting the app entry/router toward a library-first shell
-  - Added a bridge from legacy `Story` data into the unified model
+- `b65461e` — `Add unified reader entry for library items`
+  - Added `StoryReaderViewModel(libraryItem:)` alongside the legacy story initializer
+  - Added `StoryReaderView(libraryItem:)` so the unified library can open works directly
+  - Switched `LibraryView` navigation to open `LibraryItem` directly in the reader
+  - Kept the legacy story reader path intact for browse/section flows that still use `Story`
 
-- `fb31ca9` — `Continue library-first app refactor`
-  - Added a `libraryItems` path to `ScrapperViewModel`
-  - Added `loadLibraryIfNeeded(forceRefresh:)`
-  - Added a filtered library bridge for the new unified model
-  - Updated `ContentView` so the app can surface a basic library state when browse/section states are absent
+- `3421966` — `Document unified library progress`
+  - Recorded the current library-first / multi-source refactor state in the implementation notes
+  - Captured the current target slice: cleanup, unified library wiring, reducing single-source assumptions, and provider integration
 
 - `7ec003b` — `Wire library view to unified model`
   - Reworked `LibraryView` to render `LibraryItem` data instead of legacy cached snapshots
@@ -51,3 +49,15 @@ The implementation should be optimized for:
   - Deduped unified library items before display
   - Updated category aggregation to prefer unified metadata when available
   - Added the new shared model/provider files to the Xcode project so the refactor compiles as part of the app target
+
+- `fb31ca9` — `Continue library-first app refactor`
+  - Added a `libraryItems` path to `ScrapperViewModel`
+  - Added `loadLibraryIfNeeded(forceRefresh:)`
+  - Added a filtered library bridge for the new unified model
+  - Updated `ContentView` so the app can surface a basic library state when browse/section states are absent
+
+- `4efb7cf` — `Refactor toward library-first multi-source architecture`
+  - Added shared foundation models: `SourceType`, `Chapter`, `WorkMetadata`, `LibraryItem`
+  - Added provider abstraction: `StorySourceProvider`, `CurrentSourceProvider`, `AO3Provider`, `SourceRegistry`
+  - Began shifting the app entry/router toward a library-first shell
+  - Added a bridge from legacy `Story` data into the unified model
