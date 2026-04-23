@@ -8,6 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		2B9630B32B143F52002E853B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 2B9630B22B143F52002E853B /* SwiftSoup */; };
+		BB0B08EA2F99F9E7006EE7C4 /* LibraryItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08E72F99F9E7006EE7C4 /* LibraryItem.swift */; };
+		BB0B08EB2F99F9E7006EE7C4 /* Chapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08E62F99F9E7006EE7C4 /* Chapter.swift */; };
+		BB0B08EC2F99F9E7006EE7C4 /* SourceType.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08E82F99F9E7006EE7C4 /* SourceType.swift */; };
+		BB0B08ED2F99F9E7006EE7C4 /* WorkMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08E92F99F9E7006EE7C4 /* WorkMetadata.swift */; };
+		BB0B08EF2F99FA0E006EE7C4 /* SourceRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08EE2F99FA0E006EE7C4 /* SourceRegistry.swift */; };
+		BB0B08F42F99FA3E006EE7C4 /* AO3Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08F02F99FA3E006EE7C4 /* AO3Provider.swift */; };
+		BB0B08F52F99FA3E006EE7C4 /* StorySourceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08F22F99FA3E006EE7C4 /* StorySourceProvider.swift */; };
+		BB0B08F62F99FA3E006EE7C4 /* CurrentSourceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B08F12F99FA3E006EE7C4 /* CurrentSourceProvider.swift */; };
 		BB479FCD2F9980B500E2BFD7 /* RouterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB479FC02F9980B500E2BFD7 /* RouterView.swift */; };
 		BB479FCE2F9980B500E2BFD7 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB479FBC2F9980B500E2BFD7 /* SidebarView.swift */; };
 		BB479FCF2F9980B500E2BFD7 /* ResponsiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB479FC52F9980B500E2BFD7 /* ResponsiveView.swift */; };
@@ -35,6 +43,14 @@
 
 /* Begin PBXFileReference section */
 		2B96309F2B143F14002E853B /* Velvet Pages.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Velvet Pages.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB0B08E62F99F9E7006EE7C4 /* Chapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Chapter.swift; sourceTree = "<group>"; };
+		BB0B08E72F99F9E7006EE7C4 /* LibraryItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryItem.swift; sourceTree = "<group>"; };
+		BB0B08E82F99F9E7006EE7C4 /* SourceType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceType.swift; sourceTree = "<group>"; };
+		BB0B08E92F99F9E7006EE7C4 /* WorkMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkMetadata.swift; sourceTree = "<group>"; };
+		BB0B08EE2F99FA0E006EE7C4 /* SourceRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceRegistry.swift; sourceTree = "<group>"; };
+		BB0B08F02F99FA3E006EE7C4 /* AO3Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AO3Provider.swift; sourceTree = "<group>"; };
+		BB0B08F12F99FA3E006EE7C4 /* CurrentSourceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSourceProvider.swift; sourceTree = "<group>"; };
+		BB0B08F22F99FA3E006EE7C4 /* StorySourceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorySourceProvider.swift; sourceTree = "<group>"; };
 		BB479FAF2F9980B500E2BFD7 /* ReaderBookmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderBookmark.swift; sourceTree = "<group>"; };
 		BB479FB02F9980B500E2BFD7 /* ReaderPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderPreferences.swift; sourceTree = "<group>"; };
 		BB479FB12F9980B500E2BFD7 /* StoryCacheModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoryCacheModels.swift; sourceTree = "<group>"; };
@@ -89,9 +105,23 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		BB0B08F32F99FA3E006EE7C4 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				BB0B08F02F99FA3E006EE7C4 /* AO3Provider.swift */,
+				BB0B08F12F99FA3E006EE7C4 /* CurrentSourceProvider.swift */,
+				BB0B08F22F99FA3E006EE7C4 /* StorySourceProvider.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
 		BB479FB22F9980B500E2BFD7 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				BB0B08E62F99F9E7006EE7C4 /* Chapter.swift */,
+				BB0B08E72F99F9E7006EE7C4 /* LibraryItem.swift */,
+				BB0B08E82F99F9E7006EE7C4 /* SourceType.swift */,
+				BB0B08E92F99F9E7006EE7C4 /* WorkMetadata.swift */,
 				BB479FAF2F9980B500E2BFD7 /* ReaderBookmark.swift */,
 				BB479FB02F9980B500E2BFD7 /* ReaderPreferences.swift */,
 				BB479FB12F9980B500E2BFD7 /* StoryCacheModels.swift */,
@@ -110,6 +140,7 @@
 		BB479FB72F9980B500E2BFD7 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				BB0B08EE2F99FA0E006EE7C4 /* SourceRegistry.swift */,
 				BB479FB52F9980B500E2BFD7 /* ReaderBookmarkStore.swift */,
 				BB479FB62F9980B500E2BFD7 /* StoryCacheStore.swift */,
 			);
@@ -164,6 +195,7 @@
 		BB479FCC2F9980B500E2BFD7 /* Velvet Pages */ = {
 			isa = PBXGroup;
 			children = (
+				BB0B08F32F99FA3E006EE7C4 /* Sources */,
 				BB479FB22F9980B500E2BFD7 /* Models */,
 				BB479FB42F9980B500E2BFD7 /* Preview Content */,
 				BB479FB72F9980B500E2BFD7 /* Services */,
@@ -258,6 +290,10 @@
 				BB479FCF2F9980B500E2BFD7 /* ResponsiveView.swift in Sources */,
 				BB479FD02F9980B500E2BFD7 /* StoryCacheStore.swift in Sources */,
 				BB479FD12F9980B500E2BFD7 /* BrowsePageView.swift in Sources */,
+				BB0B08EA2F99F9E7006EE7C4 /* LibraryItem.swift in Sources */,
+				BB0B08EB2F99F9E7006EE7C4 /* Chapter.swift in Sources */,
+				BB0B08EC2F99F9E7006EE7C4 /* SourceType.swift in Sources */,
+				BB0B08ED2F99F9E7006EE7C4 /* WorkMetadata.swift in Sources */,
 				BB479FD22F9980B500E2BFD7 /* LibraryView.swift in Sources */,
 				BB479FD32F9980B500E2BFD7 /* StoryReaderViewModel.swift in Sources */,
 				BB479FD42F9980B500E2BFD7 /* HeaderView.swift in Sources */,
@@ -266,7 +302,11 @@
 				BB479FD62F9980B500E2BFD7 /* FilterSheetView.swift in Sources */,
 				BB479FD72F9980B500E2BFD7 /* AppProperties.swift in Sources */,
 				BB479FD82F9980B500E2BFD7 /* SettingsView.swift in Sources */,
+				BB0B08F42F99FA3E006EE7C4 /* AO3Provider.swift in Sources */,
+				BB0B08F52F99FA3E006EE7C4 /* StorySourceProvider.swift in Sources */,
+				BB0B08F62F99FA3E006EE7C4 /* CurrentSourceProvider.swift in Sources */,
 				BB479FD92F9980B500E2BFD7 /* ReaderBookmarkStore.swift in Sources */,
+				BB0B08EF2F99FA0E006EE7C4 /* SourceRegistry.swift in Sources */,
 				BB479FDA2F9980B500E2BFD7 /* ReaderBookmark.swift in Sources */,
 				BB479FDB2F9980B500E2BFD7 /* ReaderPreferences.swift in Sources */,
 				BB479FDC2F9980B500E2BFD7 /* ScrapperViewModel.swift in Sources */,

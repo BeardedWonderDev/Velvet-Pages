@@ -247,7 +247,47 @@ final class ScrapperViewModel: ObservableObject {
             loadInProgress = false
         }
 
-        libraryItems = sections.flatMap { $0.stories }.map { $0.unifiedItem }
+        let unifiedItems = sections.flatMap { $0.stories }.map { $0.unifiedItem }
+        libraryItems = dedupeLibraryItems(unifiedItems)
+    }
+
+    func filteredLibraryItems() -> [LibraryItem] {
+        libraryItems.filter { item in
+            if !storyFilterState.selectedCategories.isEmpty {
+                let itemTags = Set(item.metadata.tags.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+                if itemTags.isDisjoint(with: storyFilterState.selectedCategories) { return false }
+            }
+
+            if !storyFilterState.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                let search = storyFilterState.searchText.lowercased()
+                let haystack = [
+                    item.title,
+                    item.metadata.author,
+                    item.metadata.summary,
+                    item.metadata.tags.joined(separator: " "),
+                    item.metadata.fandoms.joined(separator: " "),
+                    item.metadata.relationships.joined(separator: " "),
+                    item.metadata.characters.joined(separator: " ")
+                ].joined(separator: " ").lowercased()
+                if !haystack.contains(search) { return false }
+            }
+
+            if storyFilterState.showOnlyFavorites && !item.isFavorite { return false }
+            if storyFilterState.showOnlyContinueReading && item.lastReadProgress <= 0 { return false }
+            return true
+        }
+    }
+
+    private func dedupeLibraryItems(_ items: [LibraryItem]) -> [LibraryItem] {
+        var seen = Set<String>()
+        var result: [LibraryItem] = []
+        for item in items {
+            let key = item.metadata.sourceURL ?? item.id
+            if seen.insert(key).inserted {
+                result.append(item)
+            }
+        }
+        return result
     }
 
     @MainActor
@@ -638,15 +678,20 @@ final class ScrapperViewModel: ObservableObject {
     }
 
     var allKnownCategories: [StoryCategory] {
-        let sourceStories: [Story]
-        if let browsePage = activeBrowsePage {
-            sourceStories = browsePage.stories
+        let storyCategories: [String]
+        if !libraryItems.isEmpty {
+            storyCategories = libraryItems.flatMap { $0.metadata.tags }
         } else {
-            sourceStories = sections.flatMap { $0.stories }
+            let sourceStories: [Story]
+            if let browsePage = activeBrowsePage {
+                sourceStories = browsePage.stories
+            } else {
+                sourceStories = sections.flatMap { $0.stories }
+            }
+            storyCategories = sourceStories.flatMap { $0.themes }
         }
 
-        let categories = sourceStories
-            .flatMap { $0.themes }
+        let categories = storyCategories
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
 
