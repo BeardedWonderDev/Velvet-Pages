@@ -7,11 +7,24 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var scrapper: ScrapperViewModel
+    @AppStorage("biometricLockEnabled") private var biometricLockEnabled = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
+
+                themedCard(title: "Security") {
+                    Toggle(isOn: $biometricLockEnabled) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Require Face ID / Touch ID")
+                            Text("Locks the app when it opens and when it returns to the foreground.")
+                                .font(.footnote)
+                                .foregroundStyle(scrapper.secondaryColor)
+                        }
+                    }
+                    .tint(scrapper.accentColor)
+                }
 
                 themedCard(title: "Appearance") {
                     VStack(alignment: .leading, spacing: 16) {

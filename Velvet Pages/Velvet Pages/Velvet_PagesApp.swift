@@ -11,12 +11,33 @@ import SwiftData
 @main
 struct Velvet_PagesApp: App {
     @StateObject private var scrapper = ScrapperViewModel()
+    @StateObject private var appLock = AppLockViewModel()
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some Scene {
         WindowGroup {
-            ResponsiveView { props in
-                RouterView(props: props)
-                    .environmentObject(scrapper)
+            ZStack {
+                ResponsiveView { props in
+                    RouterView(props: props)
+                        .environmentObject(scrapper)
+                }
+                .opacity(appLock.isLocked ? 0 : 1)
+                .disabled(appLock.isLocked)
+
+                if appLock.isLocked {
+                    AppLockView()
+                        .environmentObject(appLock)
+                        .transition(.opacity)
+                }
+            }
+            .task {
+                appLock.configureForLaunch()
+                // TODO: Re-enable optional Face ID / Touch ID gating here once the auth flow is rebuilt and verified.
+                // For now, the app should open normally without biometric prompts.
+                appLock.isLocked = false
+            }
+            .onChange(of: scenePhase) { _, _ in
+                // TODO: Re-enable lock-on-background / re-auth-on-foreground behavior here.
             }
         }
         .modelContainer(for: [CachedStoryRecord.self])

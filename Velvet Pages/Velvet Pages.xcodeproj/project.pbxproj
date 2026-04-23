@@ -29,6 +29,8 @@
 		BB479FDF2F9980B500E2BFD7 /* StoryCacheModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB479FB12F9980B500E2BFD7 /* StoryCacheModels.swift */; };
 		BB479FE02F9980B500E2BFD7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB479FC92F9980B500E2BFD7 /* Assets.xcassets */; };
 		BB479FE12F9980B500E2BFD7 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB479FB32F9980B500E2BFD7 /* Preview Assets.xcassets */; };
+		BBB427B72F99EF0300C67D99 /* AppLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB427B62F99EF0300C67D99 /* AppLockView.swift */; };
+		BBB427B92F99EF0F00C67D99 /* AppLockViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB427B82F99EF0F00C67D99 /* AppLockViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -55,6 +57,8 @@
 		BB479FC92F9980B500E2BFD7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB479FCA2F9980B500E2BFD7 /* Velvet_Pages.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Velvet_Pages.entitlements; sourceTree = "<group>"; };
 		BB479FCB2F9980B500E2BFD7 /* Velvet_PagesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Velvet_PagesApp.swift; sourceTree = "<group>"; };
+		BBB427B62F99EF0300C67D99 /* AppLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockView.swift; sourceTree = "<group>"; };
+		BBB427B82F99EF0F00C67D99 /* AppLockViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,6 +119,7 @@
 		BB479FBB2F9980B500E2BFD7 /* View Models */ = {
 			isa = PBXGroup;
 			children = (
+				BBB427B82F99EF0F00C67D99 /* AppLockViewModel.swift */,
 				BB479FB82F9980B500E2BFD7 /* AppProperties.swift */,
 				BB479FB92F9980B500E2BFD7 /* ScrapperViewModel.swift */,
 				BB479FBA2F9980B500E2BFD7 /* StoryReaderViewModel.swift */,
@@ -143,6 +148,7 @@
 		BB479FC82F9980B500E2BFD7 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				BBB427B62F99EF0300C67D99 /* AppLockView.swift */,
 				BB479FBD2F9980B500E2BFD7 /* Menu Views */,
 				BB479FC12F9980B500E2BFD7 /* Router Views */,
 				BB479FC22F9980B500E2BFD7 /* BrowsePageView.swift */,
@@ -247,6 +253,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB479FCD2F9980B500E2BFD7 /* RouterView.swift in Sources */,
+				BBB427B92F99EF0F00C67D99 /* AppLockViewModel.swift in Sources */,
 				BB479FCE2F9980B500E2BFD7 /* SidebarView.swift in Sources */,
 				BB479FCF2F9980B500E2BFD7 /* ResponsiveView.swift in Sources */,
 				BB479FD02F9980B500E2BFD7 /* StoryCacheStore.swift in Sources */,
@@ -255,6 +262,7 @@
 				BB479FD32F9980B500E2BFD7 /* StoryReaderViewModel.swift in Sources */,
 				BB479FD42F9980B500E2BFD7 /* HeaderView.swift in Sources */,
 				BB479FD52F9980B500E2BFD7 /* ContentView.swift in Sources */,
+				BBB427B72F99EF0300C67D99 /* AppLockView.swift in Sources */,
 				BB479FD62F9980B500E2BFD7 /* FilterSheetView.swift in Sources */,
 				BB479FD72F9980B500E2BFD7 /* AppProperties.swift in Sources */,
 				BB479FD82F9980B500E2BFD7 /* SettingsView.swift in Sources */,
@@ -402,12 +410,13 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Velvet Pages/Preview Content\"";
-				DEVELOPMENT_TEAM = GNTHX6WSUW;
+				DEVELOPMENT_TEAM = MUTAYL233D;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID is used to securely unlock Velvet Pages and protect your private stories from unauthorized access.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -423,7 +432,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.boiseitguru.Sex-Stories";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.beardedwonder.velvet-pages";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -445,12 +454,13 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Velvet Pages/Preview Content\"";
-				DEVELOPMENT_TEAM = GNTHX6WSUW;
+				DEVELOPMENT_TEAM = MUTAYL233D;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID is used to securely unlock Velvet Pages and protect your private stories from unauthorized access.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -466,7 +476,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "dev.boiseitguru.Sex-Stories";
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.beardedwonder.velvet-pages";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
