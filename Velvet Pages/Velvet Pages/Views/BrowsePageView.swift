@@ -85,19 +85,6 @@ struct BrowsePageView: View {
         }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(page.title.isEmpty ? "Browse" : page.title)
-                .font(.largeTitle.bold())
-                .foregroundStyle(scrapper.primaryColor)
-
-            Text("Browse stories in a consistent card layout.")
-                .font(.callout)
-                .foregroundStyle(scrapper.secondaryColor)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
     private func storyCard(story: Story) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(story.title)

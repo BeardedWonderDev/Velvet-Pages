@@ -13,8 +13,6 @@ struct FilterSheetView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                header
-
                 themedCard(title: "Story Filters") {
                     VStack(alignment: .leading, spacing: 16) {
                         Toggle("Favorites only", isOn: $scrapper.storyFilterState.showOnlyFavorites)
@@ -68,18 +66,6 @@ struct FilterSheetView: View {
         }
         .background(scrapper.backgroundColor.ignoresSafeArea())
         .foregroundStyle(scrapper.primaryColor)
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Filters")
-                .font(.largeTitle.bold())
-                .foregroundStyle(scrapper.primaryColor)
-            Text("Refine what appears in sections and the library.")
-                .font(.callout)
-                .foregroundStyle(scrapper.secondaryColor)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func themedCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
