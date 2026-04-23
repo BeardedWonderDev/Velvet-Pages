@@ -11,6 +11,11 @@ import Network
 import SwiftSoup
 import SwiftUI
 
+@MainActor
+final class LibraryStore: ObservableObject {
+    @Published var items: [LibraryItem] = []
+}
+
 // MARK: - Data Models
 
 enum AppTheme: String, CaseIterable, Identifiable {
@@ -50,6 +55,27 @@ struct Story: Hashable, Identifiable {
     var postedDate: String
     var themes: [String]
     var url: String
+
+    var sourceType: SourceType {
+        SourceRegistry.shared.sourceType(for: url) ?? .currentSource
+    }
+
+    var unifiedItem: LibraryItem {
+        LibraryItem(
+            id: id,
+            source: sourceType,
+            title: title,
+            metadata: WorkMetadata(
+                source: sourceType,
+                sourceURL: url,
+                author: author,
+                summary: description,
+                rating: rating.isEmpty ? nil : rating,
+                tags: themes
+            ),
+            chapters: [Chapter(number: 1, title: title, url: url, content: description)]
+        )
+    }
 }
 
 struct MenuItem: Hashable, Identifiable {

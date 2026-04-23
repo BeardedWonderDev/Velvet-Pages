@@ -31,12 +31,12 @@ struct RouterView: View {
                 ZStack(alignment: .top) {
                     if showSettings {
                         SettingsView()
+                    } else if selectedSectionIndex >= 0 {
+                        ContentView(section: selectedSection)
                     } else if scrapper.activeBrowsePage != nil {
                         ContentView(section: nil)
-                    } else if selectedSectionIndex < 0 {
-                        LibraryView()
                     } else {
-                        ContentView(section: selectedSection)
+                        LibraryView()
                     }
                     
                     HeaderView()

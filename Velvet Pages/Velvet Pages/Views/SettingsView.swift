@@ -12,8 +12,6 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                header
-
                 themedCard(title: "Security") {
                     Toggle(isOn: $biometricLockEnabled) {
                         VStack(alignment: .leading, spacing: 4) {
@@ -100,18 +98,6 @@ struct SettingsView: View {
         }
         .background(scrapper.surfaceColor.ignoresSafeArea())
         .foregroundStyle(scrapper.primaryColor)
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Settings")
-                .font(.largeTitle.bold())
-                .foregroundStyle(scrapper.primaryColor)
-            Text("Adjust appearance and reading preferences.")
-                .font(.callout)
-                .foregroundStyle(scrapper.secondaryColor)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func themedCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {

@@ -32,12 +32,10 @@ struct Velvet_PagesApp: App {
             }
             .task {
                 appLock.configureForLaunch()
-                // TODO: Re-enable optional Face ID / Touch ID gating here once the auth flow is rebuilt and verified.
-                // For now, the app should open normally without biometric prompts.
                 appLock.isLocked = false
+                await scrapper.loadLibraryIfNeeded(forceRefresh: false)
             }
             .onChange(of: scenePhase) { _, _ in
-                // TODO: Re-enable lock-on-background / re-auth-on-foreground behavior here.
             }
         }
         .modelContainer(for: [CachedStoryRecord.self])

@@ -19,8 +19,6 @@ struct BrowsePageView: View {
                         .frame(height: 1)
                         .id(scrollToTopToken)
 
-                    header
-
                     LazyVStack(spacing: 12) {
                         ForEach(filteredStories(page.stories)) { story in
                             if !story.title.isEmpty {
